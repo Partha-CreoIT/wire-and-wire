@@ -3,7 +3,10 @@ import { Archivo, Archivo_Narrow } from 'next/font/google';
 import './globals.css';
 import { MotionProvider } from './providers';
 
-const siteUrl = 'https://www.wireproducts.cc';
+const siteUrl =
+  process.env.SITE_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  'https://wireproduct.creox.dev';
 const siteName = 'Wire & Wire Products (M) Sdn. Bhd.';
 const siteDescription =
   'Manufacturer of PC strand, PC wire, PC bar and galvanised strand for ' +
