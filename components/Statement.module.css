@@ -1,0 +1,13 @@
+.section { padding-block: var(--space-section); }
+.grid { row-gap: var(--space-tight); }
+
+.label { grid-column: 1 / -1; color: var(--fg-muted); padding-top: 1rem; }
+.title { grid-column: 1 / -1; }
+.body  { grid-column: 1 / -1; color: var(--fg-muted); margin-top: var(--space-tight); }
+
+@media (min-width: 800px) {
+  .label { grid-column: 1 / span 3; }
+  .title { grid-column: 1 / span 8; }
+  /* Offset, not centred — asymmetry is what stops it reading as a template. */
+  .body  { grid-column: 6 / span 5; }
+}

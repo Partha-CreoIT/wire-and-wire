@@ -82,3 +82,61 @@ the ends off a 240 m bridge; this keeps the full span and gains vertical room.
 - `reveal()` keyframes `hide_render`, not just scale. Scaling one axis to 0.001
   leaves the object full-size on the other two — that put a 14 m deck slab
   14 mm in front of the lens during the macro chapters.
+
+---
+
+# Next.js port (Phase 1 start)
+
+The grey-box now runs inside the real app. `public/greybox-test.html` is kept
+as a dependency-free reference harness.
+
+```
+app/        layout · providers (Lenis mount) · page · globals.css (tokens)
+components/ HeroScrub · Statement · StatBand  (+ CSS modules)
+lib/        film-scrubber.ts · motion.ts · useMotion.ts
+```
+
+**Stack:** Next 16.3.4 (App Router, Turbopack) · React 19.2.8 · TypeScript 5.9.3
+· GSAP 3.15 · Lenis 1.3.26. Plan said Next 15; 16 is current.
+TypeScript is pinned to **5.9.3, not the newly released 7.0.2** — the Go
+rewrite is too new to risk against Next's type plugin.
+
+**Verified:** production build clean, `tsc --noEmit` clean, captions render as
+real SSR text, `?p=` maps exactly (0.22 → "Seven wires. One strand.",
+0.55 → "Concrete takes the compression.", 0.96 → "23 landmarks."),
+pin engages, reduced-motion renders all six beats in normal flow.
+
+## Bugs found and fixed during the port
+
+1. **`img.decode()` can stall forever.** The atlas reported `complete=true,
+   naturalWidth=3840` yet `decode()` never settled, leaving the canvas blank
+   permanently. `FilmScrubber.ready()` now races `decode()` against the `load`
+   event and short-circuits on already-complete images. This was a genuine
+   production-blank-hero bug, not a test artifact.
+2. **`ScrollTrigger.getAll()[0]` is not the hero** once Statement/StatBand
+   register their own triggers — the `?p=` hook jumped to another trigger's
+   offsets and landed past all content on a blank page. The pinned scene now
+   takes an `id` and is addressed with `getById('hero')`.
+3. **No CSS reset.** Next ships none and `tokens.css` assumed one, so `body`
+   kept its default 8px margin: every full-bleed section was inset and the pin
+   started at y=8 instead of 0.
+4. **`MotionProvider` killed every ScrollTrigger on cleanup**, including ones
+   owned by other components. Harmless-looking until React StrictMode
+   double-invokes effects. Components now own their own triggers.
+5. **Reduced-motion captions were invisible.** `position: static` drops
+   `z-index` (it only applies to positioned elements), so the absolutely
+   positioned canvas painted over them.
+
+## Verification note
+
+Headless Chrome cannot screenshot a `position: fixed` pinned element while
+scrolled — deep-scroll captures come back black even though the DOM state is
+correct. Beat-by-beat state was verified by reading the active caption and HUD
+instead. **Whether the scrub *feels* right still needs a real browser.**
+
+## Next
+
+- [ ] Archivo + Archivo Narrow via `next/font` (currently system fallback)
+- [ ] Nav that inverts on dark sections (`sectionTheme`)
+- [ ] Products, projects, about routes
+- [ ] Real structure model + look-dev

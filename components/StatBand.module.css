@@ -1,0 +1,13 @@
+.section { padding-block: var(--space-block); border-block: 1px solid var(--rule); }
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-block) var(--col-gap);
+}
+.cell { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 1.25rem; }
+.value { font-variant-numeric: tabular-nums; }
+.label { color: var(--fg-muted); }
+
+@media (min-width: 800px) {
+  .row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

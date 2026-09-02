@@ -1,11 +1,12 @@
 node_modules/
 .next/
 out/
+next-env.d.ts
+*.tsbuildinfo
 .DS_Store
 .env*.local
 
 # Source assets are large binaries — keep them out of git.
-# Use cloud storage / DVC and commit only optimised output in public/.
 assets-source/**
 !assets-source/README.md
 # ...but scene SOURCE is code, not an asset — it must be versioned.
@@ -13,6 +14,7 @@ assets-source/**
 !assets-source/3d/*.py
 assets-source/3d/*.blend
 assets-source/3d/*.blend[0-9]*
+
 reference/*.html
 
 # rendered intermediates

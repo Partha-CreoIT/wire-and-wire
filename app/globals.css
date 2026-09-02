@@ -1,0 +1,302 @@
+/* Wire & Wire Products — design tokens.
+   Generated from the scroll-site skill; brand values set in §1. */
+
+/* ============================================================================
+   scroll-site design tokens
+   Swap the three HSL triples in §1. Everything else derives from them.
+   Placeholder palette is brand-neutral — it is NOT a recommendation.
+   ========================================================================= */
+
+:root {
+  /* ---- §1 BRAND — the only values you edit ------------------------------ */
+  /* Store as bare HSL components so alpha ramps compose without duplication. */
+  /* Wire & Wire: copper drawn from the existing logo, warm paper, steel ink.
+     Replace once a vector logo / brand guideline arrives. */
+  --accent-hsl:    30  62% 46%;   /* copper — actions, pins, the strand      */
+  --surface-hsl:   33  33% 94%;   /* warm paper — light sections             */
+  --ink-hsl:      220   9%  6%;   /* steel near-black — dark sections        */
+
+  --accent-2-hsl:  30  62% 46%;
+
+  /* ---- §2 DERIVED SOLIDS ----------------------------------------------- */
+  --accent:    hsl(var(--accent-hsl));
+  --accent-2:  hsl(var(--accent-2-hsl));
+  --surface:   hsl(var(--surface-hsl));
+  --ink:       hsl(var(--ink-hsl));
+  --off-white: hsl(var(--surface-hsl) / 1);
+  --paper:     #fff;
+
+  /* ---- §3 ALPHA RAMPS ---------------------------------------------------
+     The trick that makes a site feel systematic: never write rgba() inline.
+     Every tint of every base color already exists as a token.
+     Rule: 5% steps. Add more only if a design genuinely needs them.        */
+  --ink-5:   hsl(var(--ink-hsl) / .05);
+  --ink-10:  hsl(var(--ink-hsl) / .10);
+  --ink-15:  hsl(var(--ink-hsl) / .15);
+  --ink-20:  hsl(var(--ink-hsl) / .20);
+  --ink-30:  hsl(var(--ink-hsl) / .30);
+  --ink-40:  hsl(var(--ink-hsl) / .40);
+  --ink-50:  hsl(var(--ink-hsl) / .50);
+  --ink-60:  hsl(var(--ink-hsl) / .60);
+  --ink-70:  hsl(var(--ink-hsl) / .70);
+  --ink-80:  hsl(var(--ink-hsl) / .80);
+  --ink-90:  hsl(var(--ink-hsl) / .90);
+
+  --accent-5:   hsl(var(--accent-hsl) / .05);
+  --accent-10:  hsl(var(--accent-hsl) / .10);
+  --accent-20:  hsl(var(--accent-hsl) / .20);
+  --accent-30:  hsl(var(--accent-hsl) / .30);
+  --accent-50:  hsl(var(--accent-hsl) / .50);
+  --accent-70:  hsl(var(--accent-hsl) / .70);
+
+  --surface-10: hsl(var(--surface-hsl) / .10);
+  --surface-20: hsl(var(--surface-hsl) / .20);
+  --surface-40: hsl(var(--surface-hsl) / .40);
+  --surface-60: hsl(var(--surface-hsl) / .60);
+  --surface-80: hsl(var(--surface-hsl) / .80);
+
+  /* ---- §4 SEMANTIC (sections flip these; components never touch raw) ---- */
+  --bg:        var(--surface);
+  --fg:        var(--ink);
+  --fg-muted:  var(--ink-60);
+  --fg-faint:  var(--ink-30);
+  --rule:      var(--ink-15);
+  --pin-color: var(--accent);
+
+  /* ---- §5 TYPE ----------------------------------------------------------
+     Two families max. Display carries the brand; mono carries the labels.
+     The uppercase narrow mono label above each section is doing enormous
+     work — it is what makes a page read as "engineered".                   */
+  --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "Archivo Narrow", ui-sans-serif, system-ui, sans-serif;
+
+  /* Fluid scale. min at 380px viewport, max at 1440px. Ratios from a real
+     award-site scale (88/68/52/44/32/24 desktop).                          */
+  --fs-h1:   clamp(2.75rem, 1.764rem + 4.151vw, 5.5rem);  /* 44 → 88 */
+  --fs-h2:   clamp(2.25rem, 1.533rem + 3.019vw, 4.25rem);  /* 36 → 68 */
+  --fs-h3:   clamp(1.75rem, 1.212rem + 2.264vw, 3.25rem);  /* 28 → 52 */
+  --fs-h4:   clamp(1.5rem, 1.052rem + 1.887vw, 2.75rem);  /* 24 → 44 */
+  --fs-h5:   clamp(1.25rem, 0.9811rem + 1.132vw, 2rem);  /* 20 → 32 */
+  --fs-h6:   clamp(1.125rem, 0.9906rem + 0.566vw, 1.5rem); /* 18 → 24 */
+  --fs-body:      1.1875rem;  /* 19 */
+  --fs-body-sm:   0.875rem;   /* 14 */
+  --fs-mono:      0.8125rem;  /* 13 */
+  --fs-mono-sm:   0.75rem;    /* 12 */
+
+  /* Tighter tracking as size grows — the detail most AI-built sites miss. */
+  --ls-h1: -0.03em;  --ls-h2: -0.02em;  --ls-h3: -0.025em;
+  --ls-h4: -0.01em;  --ls-h5: -0.01em;  --ls-h6: -0.01em;
+  --ls-mono: 0.08em;
+
+  --lh-tight: 0.96;  --lh-snug: 1.06;  --lh-body: 1.35;  --lh-loose: 1.56;
+
+  /* ---- §6 LAYOUT GRID --------------------------------------------------- */
+  --cols: 4;
+  --col-gap: 16px;
+  --row-gap: 8px;
+  --margin: 16px;
+  --max-w: 1920px;
+  --content-w: min(calc(100vw - var(--margin) * 2), calc(var(--max-w) - var(--margin) * 2));
+
+  /* ---- §7 MOTION — one vocabulary, reused everywhere -------------------- */
+  --ease-out:  cubic-bezier(0.22, 1, 0.36, 1);      /* expo-out: the default */
+  --ease-io:   cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --dur-fast: 0.35s;
+  --dur-base: 0.7s;
+  --dur-slow: 1.2s;
+  --stagger:  0.06s;   /* keep between 0.04 and 0.08 */
+
+  --pin-size: 6px;     /* signature motif */
+
+  /* ---- §7b SPACING (8px base) ------------------------------------------ */
+  --space-section: clamp(6rem, 10vw, 12rem);   /* between sections  */
+  --space-block:   clamp(2.5rem, 4vw, 4.5rem); /* within a section  */
+  --space-tight:   clamp(1rem, 1.5vw, 1.5rem); /* label -> headline */
+}
+
+@media (min-width: 800px) {
+  :root { --cols: 12; --col-gap: 28px; --margin: 28px; }
+}
+
+/* ---- §8 DARK SECTIONS -------------------------------------------------- */
+/* Flip semantics per-section, not per-page. A scroll site alternates. */
+.section--dark {
+  --bg: var(--ink);
+  --fg: var(--surface);
+  --fg-muted: var(--surface-60);
+  --fg-faint: var(--surface-20);
+  --rule: var(--surface-20);
+  --pin-color: var(--surface);
+  background: var(--bg);
+  color: var(--fg);
+}
+.section--light {
+  --bg: var(--surface);
+  --fg: var(--ink);
+  --fg-muted: var(--ink-60);
+  --fg-faint: var(--ink-30);
+  --rule: var(--ink-15);
+  --pin-color: var(--accent);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* ============================================================================
+   RESET  (Next ships none; without this body keeps its default 8px margin,
+   which insets every full-bleed section and offsets the pin start)
+   ========================================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+/* ============================================================================
+   BASE
+   ========================================================================= */
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--ink);        /* dark ground; sections paint over it */
+  color: var(--fg);
+  font-family: var(--font-display);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+img, canvas, svg, video { max-width: 100%; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* ============================================================================
+   TYPOGRAPHY
+   ========================================================================= */
+h1, .h1 { font: 400 var(--fs-h1)/var(--lh-tight) var(--font-display); letter-spacing: var(--ls-h1); }
+h2, .h2 { font: 400 var(--fs-h2)/var(--lh-snug)  var(--font-display); letter-spacing: var(--ls-h2); }
+h3, .h3 { font: 400 var(--fs-h3)/1.04            var(--font-display); letter-spacing: var(--ls-h3); }
+h4, .h4 { font: 400 var(--fs-h4)/1.23            var(--font-display); letter-spacing: var(--ls-h4); }
+h5, .h5 { font: 500 var(--fs-h5)/1.16            var(--font-display); letter-spacing: var(--ls-h5); }
+h6, .h6 { font: 500 var(--fs-h6)/1.40            var(--font-display); letter-spacing: var(--ls-h6); }
+
+.body    { font: 500 var(--fs-body)/var(--lh-body) var(--font-display); }
+.body-sm { font: 500 var(--fs-body-sm)/var(--lh-body) var(--font-display); }
+
+/* The eyebrow label. Use above every section. */
+.mono {
+  font: 500 var(--fs-mono)/1.4 var(--font-mono);
+  letter-spacing: var(--ls-mono);
+  text-transform: uppercase;
+}
+.mono-sm { font: 400 var(--fs-mono-sm)/1.4 var(--font-mono); letter-spacing: var(--ls-mono); text-transform: uppercase; }
+
+/* Optical balance for large display text. */
+h1, .h1, h2, .h2 { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* ============================================================================
+   LAYOUT
+   ========================================================================= */
+.layout      { width: 100%; max-width: var(--content-w); margin-inline: auto; }
+.layout-grid { display: grid; gap: var(--row-gap) var(--col-gap);
+               grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); }
+.layout-flex { display: flex; flex-wrap: wrap; gap: var(--row-gap) var(--col-gap); }
+
+/* ============================================================================
+   SIGNATURE MOTIF — corner pins
+   6px squares at a block's corners. Registration marks. Costs nothing,
+   reads as art direction. Swap for your own motif but keep ONE and repeat it.
+   ========================================================================= */
+[class*="has-pin"] { position: relative; }
+
+/* Shared square. Only ::before + ::after exist, so max 2 pins this way;
+   use --corners (below) when a block needs all four. */
+[class*="has-pin"]::before,
+.has-pin--top::after,
+.has-pin--bottom::after,
+.has-pin--left::after,
+.has-pin--right::after,
+.has-pin--diag::after {
+  content: "";
+  position: absolute;
+  width: var(--pin-size);
+  height: var(--pin-size);
+  background-color: var(--pin-color);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* --- single pin ------------------------------------------------------- */
+.has-pin::before,
+.has-pin--top-left::before      { top: 0;    left: 0;  }
+.has-pin--top-right::before     { top: 0;    right: 0; }
+.has-pin--bottom-left::before   { bottom: 0; left: 0;  }
+.has-pin--bottom-right::before  { bottom: 0; right: 0; }
+
+/* --- pairs ------------------------------------------------------------ */
+.has-pin--top::before     { top: 0;    left: 0;  }
+.has-pin--top::after      { top: 0;    right: 0; }
+.has-pin--bottom::before  { bottom: 0; left: 0;  }
+.has-pin--bottom::after   { bottom: 0; right: 0; }
+.has-pin--left::before    { top: 0;    left: 0;  }
+.has-pin--left::after     { bottom: 0; left: 0;  }
+.has-pin--right::before   { top: 0;    right: 0; }
+.has-pin--right::after    { bottom: 0; right: 0; }
+.has-pin--diag::before    { top: 0;    left: 0;  }
+.has-pin--diag::after     { bottom: 0; right: 0; }
+
+/* --- all four, drawn as one painted layer ----------------------------- */
+.has-pin--corners::before {
+  inset: 0;
+  width: auto;
+  height: auto;
+  background-color: transparent;
+  background-image:
+    linear-gradient(var(--pin-color), var(--pin-color)),
+    linear-gradient(var(--pin-color), var(--pin-color)),
+    linear-gradient(var(--pin-color), var(--pin-color)),
+    linear-gradient(var(--pin-color), var(--pin-color));
+  background-size: var(--pin-size) var(--pin-size);
+  background-position: left top, right top, left bottom, right bottom;
+  background-repeat: no-repeat;
+}
+
+/* ============================================================================
+   MOTION BASE STATES
+   Elements must occupy final layout space from first paint (no CLS).
+   Only opacity + transform move. JS sets the final state.
+   ========================================================================= */
+[data-anim]        { will-change: auto; }
+[data-anim].is-armed { will-change: transform, opacity; }
+
+/* Fallback when JS never runs — content must still be visible. */
+.no-js [data-anim] { opacity: 1 !important; transform: none !important; }
+
+/* Mask-rise wrapper: clip is required for the SplitText mask reveal. */
+.mask-line { overflow: clip; display: block; }
+
+/* Gradient text fill, scrubbed via --fill in motion.js */
+.text-fill {
+  background-image: linear-gradient(
+    180deg,
+    var(--fg) 50%,
+    color-mix(in srgb, var(--fg) 22%, transparent) 50%
+  );
+  background-size: 100% 200%;
+  background-position: 0 100%;       /* faded. JS scrubs toward 0 0% = solid */
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ============================================================================
+   REDUCED MOTION — a real layout, not a disabled one
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-anim] { opacity: 1 !important; transform: none !important; will-change: auto !important; }
+  .text-fill  { background: none; color: var(--fg); -webkit-text-fill-color: var(--fg); }
+}
