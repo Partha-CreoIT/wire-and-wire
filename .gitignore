@@ -9,3 +9,6 @@ out/
 assets-source/**
 !assets-source/README.md
 reference/*.html
+
+# rendered intermediates
+assets-source/3d/_render/
