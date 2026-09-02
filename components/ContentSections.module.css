@@ -1,0 +1,247 @@
+/* Content sections that follow the film. .wrap sits above the film's fixed
+   layers (stage z=10..120, copy z=20, route z=40, topbar z=50, bar z=60) so
+   the page slides over the held finale; every section paints an opaque bg. */
+.wrap {
+  position: relative;
+  z-index: 200;
+  background: var(--surface);
+}
+
+.wrap section,
+.wrap footer {
+  padding-block: var(--space-section);
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-tight);
+  margin-bottom: var(--space-block);
+}
+.sectionHead .mono {
+  color: var(--fg-muted);
+  padding-top: 1rem;
+}
+.sectionHead .h2 {
+  max-width: 24ch;
+}
+
+/* ---- products ---------------------------------------------------------- */
+.products {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-block) var(--col-gap);
+}
+.product {
+  border-top: 1px solid var(--rule);
+  padding-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.productImg {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+.productNum {
+  color: var(--accent);
+}
+.productName {
+  max-width: 16ch;
+}
+.productText {
+  color: var(--fg-muted);
+  max-width: 44ch;
+}
+.chips {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chips li {
+  padding: 6px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+@media (min-width: 800px) {
+  .products {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  /* 3 + 2: the first three products, then two wider entries beneath. */
+  .product {
+    grid-column: span 2;
+  }
+  .product:nth-child(4),
+  .product:nth-child(5) {
+    grid-column: span 3;
+  }
+}
+
+/* ---- three-column blocks (mission / global / footer) ------------------- */
+.threeCol {
+  display: grid;
+  gap: var(--space-block) var(--col-gap);
+}
+@media (min-width: 800px) {
+  .threeCol {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.colLabel {
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+.missionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.missionList li {
+  padding-left: 1.1rem;
+  position: relative;
+}
+.missionList li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: var(--pin-size);
+  height: var(--pin-size);
+  background: var(--accent);
+}
+.vision {
+  max-width: 30ch;
+}
+
+.values {
+  list-style: none;
+  margin: var(--space-block) 0 0;
+  padding: 1.25rem 0 0;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.values li {
+  padding: 8px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--fg-muted);
+}
+
+.globalNote {
+  margin-top: var(--space-block);
+  color: var(--fg-muted);
+}
+
+/* ---- projects ---------------------------------------------------------- */
+.projects {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0 var(--col-gap);
+}
+.projects li {
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--rule);
+}
+@media (min-width: 800px) {
+  .projects {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .projects {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---- footer ------------------------------------------------------------ */
+.footer {
+  padding-bottom: var(--space-block);
+}
+.footerGrid {
+  display: grid;
+  gap: var(--space-block) var(--col-gap);
+  align-items: start;
+}
+@media (min-width: 800px) {
+  .footerGrid {
+    grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr)) auto;
+  }
+}
+.footerBrand {
+  display: flex;
+  align-items: flex-start;
+}
+/* The supplied logo is copper-on-transparent; on the dark footer put it on a
+   small warm-paper plate so the wordmark stays legible. */
+.footerLogo {
+  width: 150px;
+  height: auto;
+  background: var(--surface);
+  padding: 12px;
+  border-radius: 8px;
+}
+.footer a {
+  text-decoration: none;
+}
+.footer a:hover {
+  color: var(--accent);
+}
+.footerCta {
+  justify-self: start;
+}
+@media (min-width: 800px) {
+  .footerCta {
+    justify-self: end;
+  }
+}
+.btn {
+  display: inline-block;
+  font: 600 var(--fs-body-sm) / 1 var(--font-display);
+  color: var(--ink);
+  background: var(--surface);
+  padding: 14px 26px;
+  border-radius: 999px;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+.smallPrint {
+  margin-top: var(--space-block);
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  color: var(--fg-faint);
+}
+
+/* Chips are content enumerations, not labels — sentence case reads faster. */
+.chips li,
+.values li {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* The two wide product cards fill their cells instead of clamping at 44ch. */
+@media (min-width: 800px) {
+  .product:nth-child(4) .productText,
+  .product:nth-child(5) .productText {
+    max-width: 58ch;
+  }
+}

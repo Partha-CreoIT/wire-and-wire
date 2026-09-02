@@ -67,8 +67,8 @@
      Two families max. Display carries the brand; mono carries the labels.
      The uppercase narrow mono label above each section is doing enormous
      work — it is what makes a page read as "engineered".                   */
-  --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono:    "Archivo Narrow", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo, "Archivo"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    var(--font-archivo-narrow, "Archivo Narrow"), ui-sans-serif, system-ui, sans-serif;
 
   /* Fluid scale. min at 380px viewport, max at 1440px. Ratios from a real
      award-site scale (88/68/52/44/32/24 desktop).                          */
@@ -111,7 +111,7 @@
   --pin-size: 6px;     /* signature motif */
 
   /* ---- §7b SPACING (8px base) ------------------------------------------ */
-  --space-section: clamp(6rem, 10vw, 12rem);   /* between sections  */
+  --space-section: clamp(4.5rem, 7vw, 7.5rem); /* between sections  */
   --space-block:   clamp(2.5rem, 4vw, 4.5rem); /* within a section  */
   --space-tight:   clamp(1rem, 1.5vw, 1.5rem); /* label -> headline */
 }
@@ -155,7 +155,7 @@
    ========================================================================= */
 html { -webkit-text-size-adjust: 100%; }
 body {
-  background: var(--ink);        /* dark ground; sections paint over it */
+  background: var(--surface);    /* warm-paper ground — matches the film's scene bg */
   color: var(--fg);
   font-family: var(--font-display);
   font-size: var(--fs-body);
@@ -299,4 +299,34 @@ p { text-wrap: pretty; }
   }
   [data-anim] { opacity: 1 !important; transform: none !important; will-change: auto !important; }
   .text-fill  { background: none; color: var(--fg); -webkit-text-fill-color: var(--fg); }
+}
+
+/* ============================================================================
+   LETS-SCROLL WORLD THEME (components/WorldFilm.tsx)
+   Unlayered on purpose: the engine's own defaults live in @layer sw, so these
+   brand tokens always win. --sw-bg matches the scene stills' solid #F5F0EB
+   background, which is what makes the posters read as full-bleed scenes.
+   ========================================================================= */
+.sw-root {
+  --sw-bg: hsl(var(--surface-hsl));
+  --sw-ink: hsl(var(--ink-hsl));
+  --sw-ink-soft: hsl(220 6% 42%);
+  --sw-accent: hsl(var(--accent-hsl));
+  --sw-font-display: var(--font-display);
+  --sw-font-body: var(--font-display);
+}
+
+/* This file's unlayered `a { color: inherit }` beats the engine's layered
+   button colours — restate the two white-on-dark cases unlayered. */
+.sw-root .sw-topcta,
+.sw-root .sw-btn--primary { color: #fff; }
+
+/* Scene titles size uniformly whether rendered as h1 (scene 1) or h2 —
+   the element rules above would otherwise make the h1 outsize its siblings. */
+.sw-root .sw-copy__title {
+  font: 400 var(--fs-h2) / var(--lh-snug) var(--font-display);
+  letter-spacing: var(--ls-h2);
+}
+@media (max-height: 820px) and (min-width: 861px) {
+  .sw-root .sw-copy__title { font-size: clamp(1.7rem, 3.4vw, 2.5rem); }
 }

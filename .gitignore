@@ -19,3 +19,13 @@ reference/*.html
 
 # rendered intermediates
 assets-source/3d/_render/
+.gstack/
+
+# ...but keep the world film's story, prompts + runbook (small text) in git
+!assets-source/world/
+!assets-source/world/**
+assets-source/world/**/*.png
+assets-source/world/**/*.mp4
+
+# third-party skill source (kept locally, not part of the site)
+lets-scroll-main/

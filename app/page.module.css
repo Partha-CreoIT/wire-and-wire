@@ -1,9 +1,0 @@
-.footer { padding-block: var(--space-block); border-top: 1px solid var(--rule); }
-.footerInner {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem var(--col-gap);
-  justify-content: space-between;
-  align-items: baseline;
-  color: var(--fg-muted);
-}

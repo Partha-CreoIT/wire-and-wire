@@ -1,6 +1,19 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { Archivo, Archivo_Narrow } from 'next/font/google';
 import './globals.css';
 import { MotionProvider } from './providers';
+
+const archivo = Archivo({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-archivo',
+});
+
+const archivoNarrow = Archivo_Narrow({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-archivo-narrow',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.wireproducts.cc'),
@@ -18,28 +31,18 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  // viewport-fit=cover so the film's copy can use safe-area insets on phones.
+  viewportFit: 'cover',
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <head>
-        {/* Atlas paints the canvas instantly so it is never blank. */}
-        <link
-          rel="preload"
-          as="image"
-          href="/film/d-atlas.webp"
-          fetchPriority="high"
-          media="(min-width: 820px)"
-        />
-        <link
-          rel="preload"
-          as="image"
-          href="/film/m-atlas.webp"
-          fetchPriority="high"
-          media="(max-width: 819px)"
-        />
-      </head>
+    <html lang="en" className={`${archivo.variable} ${archivoNarrow.variable}`}>
       <body>
         <MotionProvider>{children}</MotionProvider>
       </body>
