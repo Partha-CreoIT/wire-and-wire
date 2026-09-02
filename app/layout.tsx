@@ -3,6 +3,19 @@ import { Archivo, Archivo_Narrow } from 'next/font/google';
 import './globals.css';
 import { MotionProvider } from './providers';
 
+const siteUrl = 'https://www.wireproducts.cc';
+const siteName = 'Wire & Wire Products (M) Sdn. Bhd.';
+const siteDescription =
+  'Manufacturer of PC strand, PC wire, PC bar and galvanised strand for ' +
+  'pre-stressed concrete. The tension steel inside 23 landmark structures ' +
+  'across Malaysia, Singapore, Indonesia and the UAE.';
+const socialPreviewImage = {
+  url: '/social-preview.jpg',
+  width: 1200,
+  height: 630,
+  alt: 'Pre-stressed steel strand, wire drawing mill and landmark structures.',
+};
+
 const archivo = Archivo({
   subsets: ['latin'],
   display: 'swap',
@@ -16,18 +29,29 @@ const archivoNarrow = Archivo_Narrow({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.wireproducts.cc'),
+  metadataBase: new URL(siteUrl),
+  alternates: {
+    canonical: '/',
+  },
   title: {
-    default: 'Wire & Wire Products (M) Sdn. Bhd.',
+    default: siteName,
     template: '%s · Wire & Wire Products',
   },
-  description:
-    'Manufacturer of PC strand, PC wire, PC bar and galvanised strand for ' +
-    'pre-stressed concrete. The tension steel inside 23 landmark structures ' +
-    'across Malaysia, Singapore, Indonesia and the UAE.',
+  description: siteDescription,
   openGraph: {
+    title: siteName,
+    description: siteDescription,
+    url: '/',
     type: 'website',
-    siteName: 'Wire & Wire Products (M) Sdn. Bhd.',
+    siteName,
+    locale: 'en_US',
+    images: [socialPreviewImage],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteName,
+    description: siteDescription,
+    images: [socialPreviewImage],
   },
 };
 
