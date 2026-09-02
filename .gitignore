@@ -8,6 +8,11 @@ out/
 # Use cloud storage / DVC and commit only optimised output in public/.
 assets-source/**
 !assets-source/README.md
+# ...but scene SOURCE is code, not an asset — it must be versioned.
+!assets-source/3d/
+!assets-source/3d/*.py
+assets-source/3d/*.blend
+assets-source/3d/*.blend[0-9]*
 reference/*.html
 
 # rendered intermediates
