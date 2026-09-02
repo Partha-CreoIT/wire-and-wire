@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+.DS_Store
+.env*.local
+
+# Source assets are large binaries — keep them out of git.
+# Use cloud storage / DVC and commit only optimised output in public/.
+assets-source/**
+!assets-source/README.md
+reference/*.html
