@@ -91,6 +91,20 @@
   color: var(--ink);
 }
 
+/* Product films are dark scenes — the bare header flips to paper text. */
+.header[data-tone='dark']:not([data-solid]) .nav a {
+  color: var(--surface-80);
+  text-shadow: 0 1px 12px hsl(var(--ink-hsl) / 0.5);
+}
+.header[data-tone='dark']:not([data-solid]) .nav a:hover,
+.header[data-tone='dark']:not([data-solid]) .nav a[aria-current='page'] {
+  color: var(--surface);
+}
+.header[data-tone='dark']:not([data-solid]) .cta {
+  color: var(--ink);
+  background: var(--surface);
+}
+
 .nav a[aria-current='page'] {
   color: var(--ink);
   box-shadow: inset 0 calc(-1 * var(--pin-size) / 2) 0 0 var(--accent-30);

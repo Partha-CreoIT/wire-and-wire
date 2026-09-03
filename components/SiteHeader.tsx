@@ -23,6 +23,7 @@ const SOLID_AT = 72;
 export function SiteHeader() {
   const pathname = usePathname();
   const [solid, setSolid] = useState(false);
+  const [tone, setTone] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     let marker: Element | null = null;
@@ -37,6 +38,11 @@ export function SiteHeader() {
         marker
           ? marker.getBoundingClientRect().top <= SOLID_AT
           : window.scrollY > 24,
+      );
+      /* The bare header inherits the film's tone: product films are dark
+         scenes, the home film is warm paper. */
+      setTone(
+        document.querySelector('[data-film-tone="dark"]') ? 'dark' : 'light',
       );
     };
     const schedule = () => {
@@ -60,7 +66,11 @@ export function SiteHeader() {
   }, [pathname]);
 
   return (
-    <header className={styles.header} data-solid={solid || undefined}>
+    <header
+      className={styles.header}
+      data-solid={solid || undefined}
+      data-tone={tone}
+    >
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} aria-label="Wire & Wire home">
           <img

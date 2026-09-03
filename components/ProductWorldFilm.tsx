@@ -77,7 +77,14 @@ export function ProductWorldFilm() {
     });
   }, []);
 
-  return <section ref={ref} className={styles.world} aria-label="Product cinematic story" />;
+  return (
+    <section
+      ref={ref}
+      className={styles.world}
+      data-film-tone="dark"
+      aria-label="Product cinematic story"
+    />
+  );
 }
 
 /* One cinematic scene only — the product's film clip as a short intro.
@@ -121,6 +128,7 @@ export function ProductFamilyWorldFilm({ family }: { family: ProductFamily }) {
     <section
       ref={ref}
       className={`${styles.world} ${styles.familyWorld}`}
+      data-film-tone="dark"
       aria-label={`${family.name} cinematic story`}
     />
   );
