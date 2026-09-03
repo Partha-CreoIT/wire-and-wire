@@ -133,22 +133,59 @@ export function reveal(
     ? Array.from(el.querySelectorAll(children))
     : el;
   if (Array.isArray(targets) && !targets.length) return noop;
+  const targetList = Array.isArray(targets) ? targets : [targets];
 
   if (reduced()) {
-    gsap.set(targets, { opacity: 1, y: 0 });
+    gsap.set(targetList, { opacity: 1, y: 0 });
     return noop;
   }
-  const tween = gsap.from(targets, {
-    y,
-    opacity: 0,
-    duration,
-    ease: EASE,
-    stagger,
-    scrollTrigger: { trigger: el, start, once: true },
-  });
+
+  let tween: gsap.core.Tween | null = null;
+  let observer: IntersectionObserver | null = null;
+  let played = false;
+  const play = () => {
+    if (played) return;
+    played = true;
+    tween = gsap.to(targetList, {
+      y: 0,
+      opacity: 1,
+      duration,
+      ease: EASE,
+      stagger,
+      overwrite: 'auto',
+    });
+    observer?.disconnect();
+  };
+
+  gsap.set(targetList, { y, opacity: 0 });
+
+  const visibleLine =
+    start.match(/(\d+(?:\.\d+)?)%/)?.[1] ?? '88';
+  const threshold = Number(visibleLine) / 100;
+  const rect = el.getBoundingClientRect();
+  if (rect.top <= window.innerHeight * threshold) {
+    play();
+    return () => tween?.kill();
+  }
+
+  observer =
+    'IntersectionObserver' in window
+      ? new IntersectionObserver(
+          (entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) play();
+          },
+          {
+            rootMargin: `0px 0px -${Math.max(0, 100 - threshold * 100)}% 0px`,
+          },
+        )
+      : null;
+
+  if (observer) observer.observe(el);
+  else play();
+
   return () => {
-    tween.scrollTrigger?.kill();
-    tween.kill();
+    observer?.disconnect();
+    tween?.kill();
   };
 }
 

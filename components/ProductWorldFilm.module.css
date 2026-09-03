@@ -1,0 +1,50 @@
+.world {
+  --sw-bg: #111315;
+  --sw-ink: #f4eee6;
+  --sw-ink-soft: #d3c5b7;
+  --sw-accent: #be752d;
+  --sw-font-display: var(--font-display);
+  --sw-font-body: var(--font-display);
+  position: relative;
+  z-index: 1;
+  background: #111315;
+}
+
+.world :global(.sw-route__label) {
+  color: #141414;
+  background: rgba(244, 238, 230, 0.9);
+}
+
+.world :global(.sw-btn--primary) {
+  color: #141414;
+  background: #f4eee6;
+}
+
+.world :global(.sw-btn--ghost) {
+  color: #f4eee6;
+  border-color: rgba(244, 238, 230, 0.38);
+}
+
+.familyWorld {
+  --sw-bg: #101214;
+}
+
+.familyWorld :global(.sw-route) {
+  right: clamp(8px, 1.5vw, 20px);
+  gap: 10px;
+  padding: 12px 6px;
+}
+
+.familyWorld :global(.sw-route__dot) {
+  width: 18px;
+  height: 18px;
+}
+
+.familyWorld :global(.sw-route__dot i) {
+  width: 7px;
+  height: 7px;
+}
+
+.familyWorld :global(.sw-route__label) {
+  display: none;
+}

@@ -27,12 +27,6 @@ export function WorldFilm() {
     host.dataset.swMounted = '1'; // StrictMode double-invoke guard
 
     mountLetsScroll(host, {
-      brand: {
-        name: 'Wire & Wire Products (M) Sdn Bhd',
-        href: '#',
-        logo: '/world/logo.png',
-      },
-      cta: { label: 'Get in touch', href: '#contact' },
       nav: false, // single wayfinding pattern: the labelled route rail
       hint: 'scroll to follow the wire',
       diveScroll: 1.5,

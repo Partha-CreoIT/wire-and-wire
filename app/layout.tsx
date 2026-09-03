@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Archivo, Archivo_Narrow } from 'next/font/google';
 import './globals.css';
 import { MotionProvider } from './providers';
+import { SiteHeader } from '@/components/SiteHeader';
 
 const siteUrl =
   process.env.SITE_URL ||
@@ -71,6 +72,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${archivo.variable} ${archivoNarrow.variable}`}>
       <body>
+        <SiteHeader />
         <MotionProvider>{children}</MotionProvider>
       </body>
     </html>

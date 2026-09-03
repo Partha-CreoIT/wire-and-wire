@@ -153,7 +153,10 @@
 /* ============================================================================
    BASE
    ========================================================================= */
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 58px;
+}
 body {
   background: var(--surface);    /* warm-paper ground — matches the film's scene bg */
   color: var(--fg);
@@ -189,6 +192,7 @@ h6, .h6 { font: 500 var(--fs-h6)/1.40            var(--font-display); letter-spa
 
 /* Optical balance for large display text. */
 h1, .h1, h2, .h2 { text-wrap: balance; }
+h1, h2, h3, h4, h5, h6 { scroll-margin-top: 80px; }
 p { text-wrap: pretty; }
 
 /* ============================================================================

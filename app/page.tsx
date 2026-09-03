@@ -1,11 +1,11 @@
 import { WorldFilm } from '@/components/WorldFilm';
-import { ContentSections } from '@/components/ContentSections';
+import { HomeStorySections } from '@/components/PageContent';
 
 export default function Home() {
   return (
     <>
       <WorldFilm />
-      <ContentSections />
+      <HomeStorySections />
     </>
   );
 }
