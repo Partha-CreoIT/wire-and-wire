@@ -357,9 +357,11 @@ p { text-wrap: pretty; }
 }
 
 /* Phones anchor the copy to the bottom edge — keep the opened-up rhythm from
-   pushing the tags into the scroll hint. */
+   pushing the tags into the scroll hint. The mouse-wheel hint itself is a
+   desktop affordance and collides with the copy: hide it on phones. */
 @media (max-width: 860px) {
   .sw-root .sw-copy__body { margin-top: 1rem; }
   .sw-root .sw-copy__tags { margin-top: 1.2rem; }
   .sw-root .sw-copy__cta  { margin-top: 1.4rem; }
+  .sw-root .sw-hint { display: none; }
 }

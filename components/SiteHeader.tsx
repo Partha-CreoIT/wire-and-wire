@@ -24,6 +24,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [solid, setSolid] = useState(false);
   const [tone, setTone] = useState<'light' | 'dark'>('light');
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let marker: Element | null = null;
@@ -65,11 +66,26 @@ export function SiteHeader() {
     };
   }, [pathname]);
 
+  /* Navigation closes the menu; while it is open the page must not scroll. */
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
   return (
     <header
       className={styles.header}
       data-solid={solid || undefined}
       data-tone={tone}
+      data-open={open || undefined}
     >
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} aria-label="Wire & Wire home">
@@ -93,6 +109,48 @@ export function SiteHeader() {
         <a className={styles.cta} href="mailto:info@wireproducts.cc">
           Enquire
         </a>
+        <button
+          type="button"
+          className={styles.burger}
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          onClick={() => setOpen((value) => !value)}
+        >
+          <span />
+          <span />
+        </button>
+      </div>
+
+      <div id="mobile-menu" className={styles.menu} data-open={open || undefined}>
+        <nav aria-label="Mobile navigation">
+          <ol className={styles.menuList}>
+            {navItems.map((item, i) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={pathname === item.href ? 'page' : undefined}
+                  onClick={() => setOpen(false)}
+                >
+                  <span className={`mono-sm ${styles.menuNum}`}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </nav>
+        <div className={styles.menuFoot}>
+          <a className={styles.menuCta} href="mailto:info@wireproducts.cc">
+            Enquire now
+          </a>
+          <p className={`mono-sm ${styles.menuContact}`}>
+            <a href="tel:+60364196995">+603 6419 6995</a>
+            <br />
+            <a href="mailto:info@wireproducts.cc">info@wireproducts.cc</a>
+          </p>
+        </div>
       </div>
     </header>
   );
