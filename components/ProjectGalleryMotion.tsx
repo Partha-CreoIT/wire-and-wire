@@ -48,25 +48,26 @@ export function ProjectGalleryMotion({ children }: { children: ReactNode }) {
 
         if (!media || !image) return;
 
+        /* Cards are contained (overflow hidden), so lift the whole card and
+           zoom the image inside its media frame — moving the frame itself
+           would open gaps at the card edges. */
         const onEnter = () => {
-          gsap.to(media, {
-            y: -7,
-            scale: 1.025,
+          gsap.to(card, {
+            y: -6,
             duration: 0.38,
             ease: 'power2.out',
             overwrite: 'auto',
           });
           gsap.to(image, {
-            scale: 1.065,
+            scale: 1.06,
             duration: 0.8,
             ease: 'power3.out',
             overwrite: 'auto',
           });
         };
         const onLeave = () => {
-          gsap.to(media, {
+          gsap.to(card, {
             y: 0,
-            scale: 1,
             duration: 0.5,
             ease: 'power2.out',
             overwrite: 'auto',

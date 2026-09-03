@@ -6,8 +6,9 @@
 .body  { grid-column: 1 / -1; color: var(--fg-muted); margin-top: var(--space-tight); }
 
 @media (min-width: 800px) {
-  .label { grid-column: 1 / span 3; }
-  .title { grid-column: 1 / span 8; }
-  /* Offset, not centred — asymmetry is what stops it reading as a template. */
-  .body  { grid-column: 6 / span 5; }
+  .label { grid-column: 1 / -1; }
+  /* Title and body share one editorial band — heading anchors left, body
+     hangs right, no dead space below the heading. */
+  .title { grid-column: 1 / span 7; grid-row: 2; }
+  .body  { grid-column: 9 / span 4; grid-row: 2; margin-top: 0.5rem; }
 }

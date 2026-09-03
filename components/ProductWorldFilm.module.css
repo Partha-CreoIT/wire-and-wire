@@ -48,3 +48,10 @@
 .familyWorld :global(.sw-route__label) {
   display: none;
 }
+
+/* Single-scene intro: a 01/01 counter and a one-dot route rail carry no
+   information — hide both. */
+.familyWorld :global(.sw-copy__num),
+.familyWorld :global(.sw-route) {
+  display: none;
+}

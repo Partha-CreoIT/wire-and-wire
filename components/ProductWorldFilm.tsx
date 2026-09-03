@@ -5,12 +5,9 @@ import { mountLetsScroll } from '@/lib/lets-scroll-engine';
 import {
   productFamilies,
   productFilmPlan,
-  type ProductApplication,
   type ProductFamily,
-  type ProductVariant,
 } from '@/lib/siteContent';
 import {
-  hdImage,
   productFilmAssetForFamily,
   productFilmAssets,
 } from '@/lib/media';
@@ -36,56 +33,10 @@ function mountOnce(
   mountLetsScroll(host, config);
 }
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
-
 function familyTags(family: ProductFamily) {
   const tags = [family.label, `${family.applications.length} applications`];
   if (family.variants?.length) tags.push(`${family.variants.length} variants`);
   return tags;
-}
-
-function variantSection(
-  family: ProductFamily,
-  variant: ProductVariant,
-  index: number,
-) {
-  return {
-    id: `variant-${slugify(variant.name)}`,
-    label: `V${index + 1}`,
-    still: hdImage(variant.image ?? family.image),
-    accent: accents[(index + 1) % accents.length],
-    scroll: 1.05,
-    linger: 0.18,
-    eyebrow: family.name,
-    title: variant.name,
-    body: variant.description,
-    tags: variant.uses?.slice(0, 3) ?? ['Variant'],
-  };
-}
-
-function applicationSection(
-  family: ProductFamily,
-  application: ProductApplication,
-  index: number,
-) {
-  return {
-    id: `application-${slugify(application.name)}`,
-    label: `A${index + 1}`,
-    still: hdImage(application.image ?? family.image),
-    accent: accents[(index + 2) % accents.length],
-    scroll: 0.95,
-    linger: 0.12,
-    eyebrow: `${family.name} application`,
-    title: application.name,
-    body: application.description ?? family.summary,
-    tags: [family.name, 'Application'],
-  };
 }
 
 export function ProductWorldFilm() {
@@ -129,16 +80,18 @@ export function ProductWorldFilm() {
   return <section ref={ref} className={styles.world} aria-label="Product cinematic story" />;
 }
 
+/* One cinematic scene only — the product's film clip as a short intro.
+   The variants and applications are NOT repeated here as scenes; they live
+   once in the catalogue below, indexed by the numbered rail. */
 export function ProductFamilyWorldFilm({ family }: { family: ProductFamily }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const asset = productFilmAssetForFamily(family.slug);
-    const variants = family.variants ?? [];
 
     mountOnce(ref.current, {
       nav: false,
-      hint: 'scroll product detail',
+      hint: 'scroll into the catalogue',
       diveScroll: 1.05,
       crossfade: 0.18,
       connectors: [],
@@ -149,21 +102,17 @@ export function ProductFamilyWorldFilm({ family }: { family: ProductFamily }) {
           still: asset.poster,
           clip: asset.clip,
           accent: accents[0],
-          scroll: 1.48,
+          scroll: 1.6,
           linger: 0.38,
           eyebrow: family.label,
           title: family.name,
           body: family.summary,
           tags: familyTags(family),
           cta: {
-            primary: { label: 'Product data', href: '#product-data' },
+            primary: { label: 'Open the catalogue', href: '#product-data' },
             secondary: { label: 'All products', href: '/products' },
           },
         },
-        ...variants.map((variant, index) => variantSection(family, variant, index)),
-        ...family.applications.map((application, index) =>
-          applicationSection(family, application, index),
-        ),
       ],
     });
   }, [family]);

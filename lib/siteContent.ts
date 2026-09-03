@@ -9,6 +9,25 @@ export interface ProductVariant {
   description: string;
   image?: string;
   uses?: string[];
+  /* Real paragraphs from the legacy dedicated page. When every variant of a
+     family carries these, the family page renders one full cinematic
+     showcase section per variant instead of the compact overview panel. */
+  detail?: string[];
+  video?: string;
+  poster?: string;
+}
+
+export interface ProductProcessStep {
+  name: string;
+  text: string;
+}
+
+export interface ProductProcess {
+  title: string;
+  intro: string;
+  steps: ProductProcessStep[];
+  video: string;
+  poster: string;
 }
 
 export interface ProductFamily {
@@ -18,6 +37,7 @@ export interface ProductFamily {
   image: string;
   summary: string;
   detail: string[];
+  process?: ProductProcess;
   variants?: ProductVariant[];
   applications: ProductApplication[];
 }
@@ -49,92 +69,136 @@ export const productFamilies: ProductFamily[] = [
       'Pre-stressed concrete gains its strength by placing engineered stresses into the member before service loads arrive. High-strength concrete handles compression; high-tensile steel strand handles tension.',
       'High-tensile strands are stretched between abutments at the ends of long casting beds. Concrete is poured around the strands, bonds as it sets, then the strands are released to compress and arch the member with built-in load resistance.',
     ],
+    process: {
+      title: 'How pre-stressing works.',
+      intro:
+        'Pre-stressed concrete combines the best properties of two quality materials: high-strength concrete for compression and high-tensile steel strand for tension. The pre-stressing itself is quite simple.',
+      steps: [
+        {
+          name: 'Stretch',
+          text: 'High-tensile strands are stretched between abutments at each end of a long casting bed.',
+        },
+        {
+          name: 'Cast',
+          text: 'Concrete is poured into the forms, fully encasing the tensioned strands.',
+        },
+        {
+          name: 'Bond & release',
+          text: 'As the concrete sets it bonds to the tensioned steel. Once it reaches a specific strength, the strands are released from the abutments.',
+        },
+        {
+          name: 'Carry',
+          text: 'The release compresses the member and arches it upward — a built-in resistance to service loads before the first load ever arrives.',
+        },
+      ],
+      video: '/generated/process/pc-strand-process.mp4',
+      poster: '/world/product-film/posters/beat-2-prestress.webp',
+    },
     variants: [
       {
         name: 'Pre-Stressed Concrete Strand',
-        image: '/legacy/images/pcstrand/pc-strand.png',
+        image: '/generated/variants/pc-strand.webp',
         description:
           'The core PC strand product used in pre-stressed concrete, combining high-strength concrete in compression with steel strand in tension.',
+        detail: [
+          'Pre-stressed concrete is an architectural and structural material possessing great strength. Its unique characteristics allow predetermined engineering stresses to be placed in members, counteracting the stresses that occur when the unit is subjected to service loads.',
+          'This is accomplished by combining the best properties of two quality materials: high-strength concrete for compression and high-tensile steel strand for tension.',
+        ],
+        uses: ['Bridges & viaducts', 'Precast floors', 'Post-tensioned buildings'],
+        video: '/generated/showcase/pre-stressed-concrete-strand.mp4',
+        poster: '/generated/variants/pc-strand.webp',
       },
       {
         name: 'Pre-Stressed Galvanized Strand',
-        image: '/legacy/images/galvanizedstrand/galvanized-strand.png',
+        image: '/generated/variants/galvanized-strand.webp',
         description:
           'A corrosion-resistant version of pre-stressed strand where individual wires are galvanized before stranding.',
+        detail: [
+          'Pre-stressed galvanized strand has the same physical properties as pre-stressed strand, except that the individual wires are galvanized before stranding. The zinc coating protects the steel against corrosion.',
+          'Galvanized strands are commonly used in the construction of stay cable bridges and egg-shaped digesters at wastewater treatment plants.',
+        ],
         uses: ['Stay cable bridges', 'Egg shaped digester wastewater plants'],
+        video: '/generated/showcase/pre-stressed-galvanized-strand.mp4',
+        poster: '/generated/variants/galvanized-strand.webp',
       },
       {
         name: 'Unbonded Strand',
-        image: '/legacy/images/pcstrand/unbonded-strand.png',
+        image: '/generated/variants/unbonded-strand.webp',
         description:
           'PC strand coated with corrosion-resistant grease and HDPE sheathing, used in pre-stressed steel structures, bridges, high-rise buildings, foundations and stay cable systems.',
+        detail: [
+          'Unbonded PC strand is coated with corrosion-resistant lubricating grease inside a high-density polyethylene (HDPE) sheath, so the strand stays free to move within the member.',
+          'It is mainly used for pre-stressed steel structures, rail and road bridges, high-rise buildings, building foundation columns and the containment shells of nuclear power stations. HDPE PC strand is commonly used in the construction of stay cables for bridges.',
+        ],
         uses: ['Rail and road bridges', 'High-rise buildings', 'Stay cable bridges', 'Foundation columns'],
+        video: '/generated/showcase/unbonded-strand.mp4',
+        poster: '/generated/variants/unbonded-strand.webp',
       },
     ],
     applications: [
       {
         name: 'Hollow Core Slabs',
-        image: '/legacy/images/pcstrand/hollow-core-slabs.png',
+        image: '/generated/applications/pc-strand/hollow-core-slabs.webp',
         description:
           'Precast pre-stressed floor slabs with internal voids, widely used where fast assembly, lower self-weight and economical construction matter.',
       },
       {
         name: 'Pre-Stressed Concrete Plank',
-        image: '/legacy/images/pcstrand/pre-stressed-concreate-planks.png',
+        image: '/generated/applications/pc-strand/pre-stressed-concrete-plank.webp',
         description:
           'Floor and roof deck systems that erect quickly, reduce on-site labour and span long open spaces with shallow structural depth.',
       },
       {
         name: 'Pre-Stressed Concrete Beams',
-        image: '/legacy/images/pcstrand/pre-stressed-concrete-beams5.png',
+        image: '/generated/applications/pc-strand/pre-stressed-concrete-beams.webp',
         description:
           'Concrete beams kept in compression while tensile forces are carried by steel tendons, commonly used on highway bridges.',
       },
       {
         name: 'Post-Tensioned Buildings',
-        image: '/legacy/images/stories/post-tensioned.png',
+        image: '/generated/applications/pc-strand/post-tensioned-buildings.webp',
         description:
           'A cost-effective floor system adopted across Australia, Southeast Asia, the Middle East and South Asia for commercial, industrial and institutional buildings.',
       },
       {
         name: 'In Situ Flat Slab',
-        image: '/legacy/images/pcstrand/in-situ-flat-slab.png',
+        image: '/generated/applications/pc-strand/in-situ-flat-slab.webp',
         description:
           'Economical slab systems for suitable column grids, viable beyond 6.0 m spans and increasingly efficient as live loads rise.',
       },
       {
         name: 'Precast Girders',
-        image: '/legacy/images/pcstrand/precast-girders.png',
+        image: '/generated/applications/pc-strand/precast-girders.webp',
         description:
           'Economical for spans up to about 40 m where site access allows mobile cranes and night-time launching work.',
       },
       {
         name: 'Insitu Construction',
-        image: '/legacy/images/pcstrand/insitu-construction.png',
+        image: '/generated/applications/pc-strand/insitu-construction.webp',
         description:
           'A practical method for shorter elevated viaduct stretches when limited precast mould reuse makes precast uneconomical.',
       },
       {
         name: 'Span By Precast Segmental',
-        image: '/legacy/images/pcstrand/span-by-prescast-segmental.png',
+        image: '/generated/applications/pc-strand/span-by-precast-segmental.webp',
         description:
           'Used for moderately large bridge spans where launching trusses can lift delivered precast segments along the alignment.',
       },
       {
         name: 'Balanced Cantilever Precast Segmental',
-        image: '/legacy/images/pcstrand/balanced-cantilever-precast-segmental.png',
+        image: '/generated/applications/pc-strand/balanced-cantilever-precast-segmental.webp',
         description:
           'Suitable where segments can be delivered from rear erected spans or below the span and erected from multiple construction fronts.',
       },
       {
         name: 'Egg Shaped Digesters',
-        image: '/legacy/images/stories/egg-shaped-digesters.png',
+        image: '/generated/applications/pc-strand/egg-shaped-digesters.webp',
         description:
           'Wastewater treatment digesters with post-tensioned walls in longitudinal and circumferential directions.',
       },
       {
         name: 'Stay Cable Bridges',
-        image: '/legacy/images/pcstrand/stay-cable-bridge1.png',
+        image: '/generated/applications/pc-strand/stay-cable-bridges.webp',
         description:
           'HDPE PC strand and unbonded strand applications for bridge stay cable construction.',
       },
@@ -150,18 +214,57 @@ export const productFamilies: ProductFamily[] = [
     detail: [
       'PC wire is used in pre-stressing concrete for residential flooring and precast concrete products including pipes, railway sleepers, PC piles, posts and ground anchors.',
     ],
+    process: {
+      title: 'How PC wire drives precast production.',
+      intro:
+        'PC wire brings the same tension principle to repeatable precast production — poles, piles, sleepers and pipes made to the identical recipe, cast after cast.',
+      steps: [
+        {
+          name: 'Draw',
+          text: 'High-carbon rod is cold-drawn into high-tensile wire with a surface profiled to bond with concrete.',
+        },
+        {
+          name: 'Tension',
+          text: 'Wires are tensioned in the molds and casting beds of spun poles, square piles and sleepers.',
+        },
+        {
+          name: 'Cast & spin',
+          text: 'Concrete is cast — or spun in rotating molds — around the tensioned wires.',
+        },
+        {
+          name: 'Release',
+          text: 'Cured products take the wire tension as compression, ready for the next identical cast.',
+        },
+      ],
+      video: '/generated/process/pc-wire-process.mp4',
+      poster: '/world/product-film/posters/beat-3-pc-wire.webp',
+    },
+    variants: [
+      {
+        name: 'High-Tensile PC Wire',
+        image: '/generated/variants/pc-wire.webp',
+        description:
+          'High-tensile wire for pre-stressing concrete products and repeatable precast production.',
+        detail: [
+          'High-tensile PC wire is used in pre-stressing concrete for flooring in residential housing and for precast concrete products: concrete pipes, railway sleepers, PC piles, posts, ground anchors and more.',
+          'The drawn wire carries the same tension principle as strand, sized for repeatable precast production where the identical member is cast again and again.',
+        ],
+        uses: ['Concrete pipes', 'Railway sleepers', 'PC piles & posts', 'Ground anchors', 'Residential flooring'],
+        poster: '/generated/variants/pc-wire.webp',
+      },
+    ],
     applications: [
       {
         name: 'Pre-Stressed Concrete Spun Poles',
-        image: '/legacy/images/pcwire/prestressed-concrete-spun-poles.png',
+        image: '/generated/applications/pc-wire/spun-poles.webp',
       },
       {
         name: 'Pre-Stressed Concrete Square Piles',
-        image: '/legacy/images/pcwire/prestressed-concrete-square-piles.png',
+        image: '/generated/applications/pc-wire/square-piles.webp',
       },
       {
         name: 'Concrete Railway Sleepers',
-        image: '/legacy/images/pcwire/railway-sleepers.png',
+        image: '/generated/applications/pc-wire/railway-sleepers.webp',
       },
     ],
   },
@@ -176,14 +279,53 @@ export const productFamilies: ProductFamily[] = [
       'PC bars are developed as the main reinforcement for PC poles and spun piles. The chemical composition is suitable for spot welding.',
       'The bar is drawn into spiral grooves, then high-frequency quenched and tempered to achieve mechanical properties in accordance with JIS G3137.',
     ],
+    process: {
+      title: 'Grooved, quenched, tempered.',
+      intro:
+        'PC bar is the main reinforcement of PC poles and spun piles — spiral-grooved, quenched and tempered to JIS G3137, with a chemistry suited to spot welding.',
+      steps: [
+        {
+          name: 'Roll',
+          text: 'Alloy steel bar is produced with a chemical composition suitable for spot-welding cages.',
+        },
+        {
+          name: 'Groove',
+          text: 'The bar is drawn into spiral grooves that lock mechanically into concrete.',
+        },
+        {
+          name: 'Quench & temper',
+          text: 'High-frequency quenching and tempering set the mechanical properties to JIS G3137.',
+        },
+        {
+          name: 'Reinforce',
+          text: 'Grooved bars are welded into cages as the main reinforcement of spun poles and piles.',
+        },
+      ],
+      video: '/generated/process/pc-bar-process.mp4',
+      poster: '/world/product-film/posters/beat-4-pc-bar.webp',
+    },
+    variants: [
+      {
+        name: 'Spiral-Grooved PC Bar',
+        image: '/generated/variants/pc-bar.webp',
+        description:
+          'Spiral-grooved bar developed as main reinforcement for PC poles and spun piles.',
+        detail: [
+          'PC bars are developed as the main reinforcement for manufacturing PC poles and spun piles, with a chemical composition suitable for spot welding.',
+          'The bar is drawn into the shape of spiral grooves, then high-frequency quenched and tempered to achieve mechanical properties in accordance with JIS G3137.',
+        ],
+        uses: ['PC poles', 'Spun piles', 'Spot-welded cages'],
+        poster: '/generated/variants/pc-bar.webp',
+      },
+    ],
     applications: [
       {
         name: 'Pre-Stressed Concrete Spun Pole',
-        image: '/legacy/images/pcbar/prestressedcsp.png',
+        image: '/generated/applications/pc-bar/spun-pole.webp',
       },
       {
         name: 'Pre-Stressed Concrete Spun Pile',
-        image: '/legacy/images/pcbar/prestressed-concrete-spun-piles.png',
+        image: '/generated/applications/pc-bar/spun-pile.webp',
       },
     ],
   },
@@ -199,63 +341,75 @@ export const productFamilies: ProductFamily[] = [
       'Coating weight and thickness are chosen by expected service life, exposure environment and cost.',
       'Galvanized wires are commonly used for chain link fencing, gabion boxes, barbed wire and cable applications.',
     ],
+    process: {
+      title: 'How zinc gets onto the steel.',
+      intro:
+        'Galvanizing places a sacrificial zinc barrier between steel and the weather — coating weight chosen by service life, exposure and cost.',
+      steps: [
+        {
+          name: 'Draw',
+          text: 'Steel wire is drawn to its final diameter before coating.',
+        },
+        {
+          name: 'Galvanize',
+          text: 'Wire passes through molten zinc — hot-dipped heavy, medium or standard — or is electro-galvanized for a controlled finish.',
+        },
+        {
+          name: 'Strand',
+          text: 'Coated wires are stranded into stay strand, ACSR core and bearer cable constructions.',
+        },
+        {
+          name: 'Endure',
+          text: 'Zinc protects cathodically in fencing, gabions, armoured cable and exposed spans.',
+        },
+      ],
+      video: '/generated/process/galvanized-process.mp4',
+      poster: '/world/product-film/posters/beat-5-galvanized.webp',
+    },
     variants: [
       {
-        name: 'Hot Dipped Heavy Galvanized Wire',
-        image: '/legacy/images/galvanizedstrand/galvanized-wires.png',
-        description: 'Heavy zinc-coated wire for demanding exposure conditions.',
-      },
-      {
-        name: 'Hot Dipped Medium Galvanized Wire',
-        description: 'Medium zinc-coated wire for general industrial use.',
-      },
-      {
-        name: 'Hot Dipped Standard Galvanized Wire',
-        description: 'Standard galvanized wire for everyday protected-wire applications.',
-      },
-      {
-        name: 'Electro Galvanized Wire',
-        description: 'Electro-galvanized wire for controlled coating and finish requirements.',
-      },
-      {
-        name: 'Galfan Wire',
-        description: 'Galfan-coated wire for enhanced corrosion resistance.',
-      },
-      {
-        name: 'Galvanized Steel Core Strand for ACSR',
-        image: '/legacy/images/galvanizedstrand/galvanizedstrand.png',
+        name: 'Galvanized Wires',
+        image: '/generated/variants/galvanized-wires.webp',
         description:
-          'Steel core strand used with aluminium in Aluminium Conductor Steel Reinforced overhead conductors.',
+          'Zinc-coated wires from heavy hot-dipped to electro-galvanized and Galfan.',
+        detail: [
+          'Galvanizing applies a protective zinc barrier between the steel and the environment, offering cathodic protection. Coating weight and thickness are chosen by expected service life, exposure environment and cost.',
+          'The range runs from heavy, medium and standard hot-dipped coatings to electro-galvanized wire for controlled finishes and Galfan coating for enhanced corrosion resistance — used in chain link fencing, gabion boxes, barbed wire and cable applications.',
+        ],
+        uses: ['Hot dipped heavy', 'Hot dipped medium', 'Hot dipped standard', 'Electro galvanized', 'Galfan'],
+        video: '/generated/showcase/galvanized-wires.mp4',
+        poster: '/generated/variants/galvanized-wires.webp',
       },
       {
-        name: 'Galvanized Steel Stay Strand',
-        description: 'Stay wire strand for overhead and structural support applications.',
-      },
-      {
-        name: 'Integral Bearer Cable Strand',
-        description: 'Galvanized strand for integral bearer cable systems.',
-      },
-      {
-        name: 'Optical Fiber Strand',
-        description: 'Galvanized steel strand for optical fiber support applications.',
+        name: 'Galvanized Strand',
+        image: '/generated/variants/acsr-core-strand.webp',
+        description:
+          'Galvanized steel strand for conductor cores, stay wires and cable systems.',
+        detail: [
+          'Galvanized wires are stranded into constructions for overhead and structural support: steel core strand used with aluminium in ACSR overhead conductors, stay strand, integral bearer cable strand and optical fiber support strand.',
+          'The zinc coating protects the strand cathodically through decades of exposed service on lines, masts and cable routes.',
+        ],
+        uses: ['ACSR core strand', 'Stay strand', 'Integral bearer cable', 'Optical fiber strand'],
+        video: '/generated/showcase/galvanized-strand.mp4',
+        poster: '/generated/variants/acsr-core-strand.webp',
       },
     ],
     applications: [
       {
         name: 'Low Voltage Armoured Cable',
-        image: '/legacy/images/galvanizedstrand/galvanized-wires2.png',
+        image: '/generated/applications/galvanized-strand-wire/lv-armoured-cable.webp',
       },
       {
         name: 'XLPE Cable',
-        image: '/legacy/images/galvanizedstrand/galvanized-wires3.png',
+        image: '/generated/applications/galvanized-strand-wire/xlpe-cable.webp',
       },
       {
         name: 'Chain Link Fencing & Barbed Wire',
-        image: '/legacy/images/galvanizedstrand/galvanized-wires4.png',
+        image: '/generated/applications/galvanized-strand-wire/chain-link-barbed-wire.webp',
       },
       {
         name: 'Gabion Boxes',
-        image: '/legacy/images/galvanizedstrand/gabion1.png',
+        image: '/generated/applications/galvanized-strand-wire/gabion-boxes.webp',
       },
     ],
   },
@@ -269,13 +423,70 @@ export const productFamilies: ProductFamily[] = [
     detail: [
       'Beyond pre-stressing applications, Wire & Wire supplies a wider range of drawn wire products for industrial use.',
     ],
+    process: {
+      title: 'From rod to industrial wire.',
+      intro:
+        'Beyond pre-stressing, the same drawing discipline supplies industrial wire — from cold-heading stock to welding wire.',
+      steps: [
+        {
+          name: 'Select',
+          text: 'Carbon steel rod is selected by grade for each end use.',
+        },
+        {
+          name: 'Draw',
+          text: 'Rod is drawn to the final diameter and surface finish the application needs.',
+        },
+        {
+          name: 'Coat',
+          text: 'Where service demands it, wires take PVC colour coats or galvanizing plus PVC protection.',
+        },
+        {
+          name: 'Supply',
+          text: 'Finished coils ship for cold heading, MIG welding and multi-purpose manufacturing.',
+        },
+      ],
+      video: '/generated/process/other-wires-process.mp4',
+      poster: '/world/product-film/posters/beat-6-unbonded-span.webp',
+    },
+    variants: [
+      {
+        name: 'Industrial Drawn Wires',
+        image: '/generated/applications/other-wires/multi-use-wires.webp',
+        description:
+          'A supporting range of drawn wire products for industrial and manufacturing requirements.',
+        detail: [
+          'Beyond pre-stressing, Wire & Wire supplies a wider range of drawn wire products for industrial use — from soft low-carbon wire to precision cold-heading stock.',
+          'The range covers PVC-coated colour steel wires, PVC-coated galvanized iron wire, carbon steel wire for cold heading and forging (CHQ), CO2 MIG welding wire and multi-use wires.',
+        ],
+        uses: ['Low carbon wire', 'PVC-coated colour', 'PVC-coated GI', 'CHQ', 'MIG welding wire', 'Multi use'],
+        poster: '/generated/applications/other-wires/multi-use-wires.webp',
+      },
+    ],
     applications: [
-      { name: 'Low Carbon Steel Wire' },
-      { name: 'PVC-Coated Colour Steel Wires' },
-      { name: 'PVC-Coated Galvanized Iron Wire' },
-      { name: 'Carbon Steel Wire For Cold Heading & Forging (CHQ)' },
-      { name: 'CO2 MIG Welding Wire' },
-      { name: 'Multi Use Wires' },
+      {
+        name: 'Low Carbon Steel Wire',
+        image: '/generated/applications/other-wires/low-carbon-steel-wire.webp',
+      },
+      {
+        name: 'PVC-Coated Colour Steel Wires',
+        image: '/generated/applications/other-wires/pvc-coated-colour-steel-wires.webp',
+      },
+      {
+        name: 'PVC-Coated Galvanized Iron Wire',
+        image: '/generated/applications/other-wires/pvc-coated-galvanized-iron-wire.webp',
+      },
+      {
+        name: 'Carbon Steel Wire For Cold Heading & Forging (CHQ)',
+        image: '/generated/applications/other-wires/chq-wire.webp',
+      },
+      {
+        name: 'CO2 MIG Welding Wire',
+        image: '/generated/applications/other-wires/co2-mig-welding-wire.webp',
+      },
+      {
+        name: 'Multi Use Wires',
+        image: '/generated/applications/other-wires/multi-use-wires.webp',
+      },
     ],
   },
 ];

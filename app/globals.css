@@ -157,6 +157,14 @@ html {
   -webkit-text-size-adjust: 100%;
   scroll-padding-top: 58px;
 }
+/* The film engine's reset sets overflow-x: hidden on html/body, which makes
+   body a scroll container and breaks position: sticky descendants (the
+   catalogue rail). clip prevents the same horizontal overflow without the
+   scroll-container semantics. */
+html,
+body {
+  overflow-x: clip;
+}
 body {
   background: var(--surface);    /* warm-paper ground — matches the film's scene bg */
   color: var(--fg);
@@ -331,6 +339,27 @@ p { text-wrap: pretty; }
   font: 400 var(--fs-h2) / var(--lh-snug) var(--font-display);
   letter-spacing: var(--ls-h2);
 }
+
+/* Story copy rhythm: the engine's default intervals are set for its rounded
+   system font and read cramped with Archivo. Open each beat — eyebrow →
+   title → body → tags → CTA — so the blocks separate cleanly. */
+.sw-root .sw-copy__eyebrow { margin-top: 1.25rem; }
+.sw-root .sw-copy__title   { margin-top: 1rem; }
+.sw-root .sw-copy__body    { margin-top: 1.4rem; line-height: var(--lh-loose); }
+.sw-root .sw-copy__tags    { margin-top: 1.75rem; gap: 10px; }
+.sw-root .sw-copy__cta     { margin-top: 2rem; }
+
 @media (max-height: 820px) and (min-width: 861px) {
-  .sw-root .sw-copy__title { font-size: clamp(1.7rem, 3.4vw, 2.5rem); }
+  .sw-root .sw-copy__title { font-size: clamp(1.7rem, 3.4vw, 2.5rem); margin-top: 0.75rem; }
+  .sw-root .sw-copy__body  { margin-top: 1rem; }
+  .sw-root .sw-copy__tags  { margin-top: 1.25rem; }
+  .sw-root .sw-copy__cta   { margin-top: 1.4rem; }
+}
+
+/* Phones anchor the copy to the bottom edge — keep the opened-up rhythm from
+   pushing the tags into the scroll hint. */
+@media (max-width: 860px) {
+  .sw-root .sw-copy__body { margin-top: 1rem; }
+  .sw-root .sw-copy__tags { margin-top: 1.2rem; }
+  .sw-root .sw-copy__cta  { margin-top: 1.4rem; }
 }

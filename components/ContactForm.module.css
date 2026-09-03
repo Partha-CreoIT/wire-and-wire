@@ -1,0 +1,84 @@
+/* Lives on the dark contact section — fields are cut into the surface,
+   focus draws the copper accent. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding: 1.6rem 1.5rem 1.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: hsl(var(--surface-hsl) / 0.05);
+}
+
+.row {
+  display: grid;
+  gap: 1.15rem;
+}
+@media (min-width: 640px) {
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  color: var(--fg-muted);
+}
+
+.input {
+  font: 500 var(--fs-body-sm) / var(--lh-body) var(--font-display);
+  color: var(--fg);
+  background: hsl(var(--ink-hsl) / 0.45);
+  border: 1px solid var(--surface-20);
+  border-radius: 10px;
+  padding: 0.8rem 0.95rem;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.input:hover {
+  border-color: var(--surface-40);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: hsl(var(--ink-hsl) / 0.6);
+}
+
+textarea.input {
+  resize: vertical;
+  min-height: 9rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.submit {
+  cursor: pointer;
+  border: 0;
+  font: 600 var(--fs-body-sm) / 1 var(--font-display);
+  color: var(--ink);
+  background: var(--surface);
+  padding: 14px 26px;
+  border-radius: 999px;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.submit:hover {
+  transform: translateY(-2px);
+}
+
+.note {
+  color: var(--fg-faint);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}

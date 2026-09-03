@@ -2,6 +2,12 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    // The company record moved to /about (and /investor was retired).
+    return [
+      { source: '/company', destination: '/about', permanent: true },
+    ];
+  },
   // Frames are pre-optimised WebP written by scripts/build-hero.sh and are
   // fetched by the scrub worker, never through next/image.
   images: { formats: ['image/avif', 'image/webp'] },
