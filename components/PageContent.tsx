@@ -112,7 +112,7 @@ function Address({ lines }: { lines: string[] }) {
 
 export function HomeStorySections() {
   return (
-    <div className={styles.wrap} data-site-content>
+    <div id="home-content" className={styles.wrap} data-site-content>
       <StatBand
         stats={[
           { value: projects.length, label: 'Landmark projects' },
@@ -131,40 +131,7 @@ export function HomeStorySections() {
 
       <CompassSection />
 
-      <section className="section--dark" data-theme="dark">
-        <div className="layout">
-          <SectionHead
-            label="Product story"
-            title="From wire geometry to landmark infrastructure."
-            intro="The new product film follows six beats: strand, prestressing, PC wire, PC bar, galvanized protection and unbonded span applications."
-          />
-          <RevealGroup as="ol" className={styles.filmBeats}>
-            {productFilmPlan.map((beat, i) => (
-              <li key={beat.id} className={styles.filmBeat}>
-                <div className={styles.cardMedia}>
-                  <img
-                    className={styles.filmPoster}
-                    src={productFilmAssets[i].poster}
-                    alt={beat.title}
-                    loading="lazy"
-                  />
-                  <span className={`mono-sm ${styles.cardNum}`}>
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                </div>
-                <div className={styles.cardBody}>
-                  <p className="mono-sm">{beat.label}</p>
-                  <h3 className="h5">{beat.title}</h3>
-                  <p className="body-sm">{beat.subject}</p>
-                  <Link className={styles.storyLink} href={productHrefForFilm(beat.id)}>
-                    Open product
-                  </Link>
-                </div>
-              </li>
-            ))}
-          </RevealGroup>
-        </div>
-      </section>
+      <ProductFamilySection />
 
       <section className="section--light" data-theme="light">
         <div className="layout">

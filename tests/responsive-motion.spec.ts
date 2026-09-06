@@ -23,8 +23,8 @@ async function frameSignature(page: Page, index = 0) {
   });
 }
 
-test('home and product films paint different frames as the user scrolls', async ({ page }, testInfo) => {
-  for (const path of ['/', '/products', '/products/pc-strand']) {
+test('product films paint different frames as the user scrolls', async ({ page }, testInfo) => {
+  for (const path of ['/products', '/products/pc-strand']) {
     await page.goto(path);
     await expect(page.locator('.sw-scene video').first()).toHaveJSProperty('readyState', 4);
     // A real gesture exercises mobile video activation before scrolling.
@@ -59,7 +59,7 @@ test('product navigation replaces the film and returns to its beginning', async 
 });
 
 test('story chapter buttons reveal their copy and do not retain invisible links', async ({ page }) => {
-  for (const { path, count } of [{ path: '/', count: 4 }, { path: '/products', count: 6 }]) {
+  for (const { path, count } of [{ path: '/products', count: 6 }]) {
     await page.goto(path);
     await expect(page.locator('.sw-route__dot')).toHaveCount(count);
     for (const index of [...Array.from({ length: count - 1 }, (_, i) => i + 1), 0]) {
@@ -81,7 +81,7 @@ test('all main and product routes remain reachable through navigation', async ({
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
-  await expect(page.locator('.sw-root')).toBeVisible();
+  await expect(page.locator('[data-cinematic-story]')).toBeVisible();
   for (const href of ['/products', '/projects', '/about', '/contact', '/']) {
     await navigate(page, href);
     await expect(page.locator('h1').first()).toBeVisible();
@@ -111,13 +111,13 @@ test('mobile menu closes on Escape and desktop resize, restoring scroll', async 
   await page.getByRole('button', { name: 'Open menu' }).click();
   await page.setViewportSize({ width: 1200, height: 800 });
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
-  if (browserName === 'webkit') await page.locator('.sw-route__dot').nth(1).click();
+  if (browserName === 'webkit') await page.locator('nav[aria-label="Story chapters"] button').nth(1).click();
   else await page.mouse.wheel(0, 450);
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
 });
 
 test('leaving a film releases its video sources', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/products');
   await expect(page.locator('.sw-scene video').first()).toHaveJSProperty('readyState', 4);
   const videos = await page.locator('.sw-scene video').elementHandles();
   await navigate(page, '/about');
@@ -125,7 +125,7 @@ test('leaving a film releases its video sources', async ({ page }) => {
     await expect.poll(() => video.evaluate(v => (v as HTMLVideoElement).getAttribute('src'))).toBeNull();
     expect(await video.evaluate(v => v.isConnected)).toBe(false);
   }
-  await navigate(page, '/');
+  await navigate(page, '/products');
   await expect(page.locator('.sw-track')).toHaveCount(1);
 });
 
@@ -133,7 +133,7 @@ test('compact and rotated screens keep film content clear of navigation', async 
   test.skip(isMobile, 'Viewport matrix runs once alongside the touch-browser tests');
   for (const viewport of [{ width: 320, height: 568 }, { width: 844, height: 390 }, { width: 768, height: 1024 }, { width: 1280, height: 720 }]) {
     await page.setViewportSize(viewport);
-    for (const path of ['/', '/products/pc-strand']) {
+    for (const path of ['/products/pc-strand']) {
       await page.goto(path);
       await expect(page.locator('.sw-copy').first()).toHaveCSS('opacity', '1');
       await page.screenshot({ path: testInfo.outputPath(`${viewport.width}-${path.replaceAll('/', '-')}.png`) });
@@ -158,10 +158,10 @@ test('catalogue videos play when their section enters view', async ({ page }) =>
 test('reduced motion keeps story navigation and content accessible without video', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  await expect(page.locator('.sw-route__dot')).toHaveCount(4);
+  await expect(page.locator('nav[aria-label="Story chapters"] button')).toHaveCount(4);
   await expect(page.locator('.sw-scene video')).toHaveCount(0);
-  await page.locator('.sw-route__dot').nth(2).click();
-  await expect(page.locator('.sw-route__dot').nth(2)).toHaveClass(/is-active/);
+  await page.locator('nav[aria-label="Story chapters"] button').nth(2).click();
+  await expect(page.locator('nav[aria-label="Story chapters"] button').nth(2)).toHaveAttribute('aria-current', 'step');
   await navigate(page, '/products');
   await expect(page.locator('.sw-scene video')).toHaveCount(0);
 });

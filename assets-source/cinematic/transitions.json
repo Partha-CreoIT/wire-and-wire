@@ -1,0 +1,44 @@
+[
+  {
+    "id": "mill-to-strand",
+    "prompt": "Create a seamless connecting camera move between the supplied exact first and last frames. One uninterrupted photorealistic shot. Starting inside the steel mill beside the technician, the camera immediately glides forward and downward toward the silver wire on the drawing line. It follows that same steel wire into an extreme macro view of the helical strand, smoothly increasing lens magnification until it reaches the supplied final macro composition. The factory recedes into soft darkness as the steel fills the frame. Preserve real metal texture and warm raking light. Smooth continuous forward motion and physical parallax throughout, natural directional motion blur during the fast approach. No scene cut, no dissolve, no fade to black, no montage, no liquefying or morphing objects, no cartoon, no new text. Exact endpoint composition; this will join two existing film shots.",
+    "firstFrame": {
+      "file": "mill-out.jpg",
+      "source": "mill",
+      "time": 6
+    },
+    "lastFrame": {
+      "file": "strand-in.jpg",
+      "source": "strand",
+      "time": 0
+    }
+  },
+  {
+    "id": "strand-to-build",
+    "prompt": "Create a seamless connecting camera move between the supplied exact first and last frames. One uninterrupted photorealistic shot that reveals the purpose of the SAME steel strand. Start close on the silver helical strand. Camera tracks swiftly along its length into a dark circular prestressing anchorage in concrete, passing through the dark opening as a natural occlusion, then pulls back and rises from the end of that concrete beam to reveal the full-scale Malaysian viaduct and two engineers shown in the final frame. The strand belongs within this concrete structure. Maintain continuous spatial forward travel through the anchorage, then a smooth widening crane reveal. Tactile real concrete, steel and tropical atmosphere. No cuts, no dissolves, no fading, no detached slideshow, no fantasy transparent bridge, no melting or morphing people. Land exactly on the supplied last-frame composition.",
+    "firstFrame": {
+      "file": "strand-out.jpg",
+      "source": "strand",
+      "time": 4
+    },
+    "lastFrame": {
+      "file": "build-in.jpg",
+      "source": "build",
+      "time": 4
+    }
+  },
+  {
+    "id": "build-to-skyline",
+    "prompt": "Create one uninterrupted photorealistic cinematic camera journey joining these exact start and end frames. Begin beside the Malaysian concrete viaduct and the two engineers. Camera accelerates forward along the underside of the concrete span, cranes upward past its edge, and rises high above the tropical trees into an expansive Kuala Lumpur aerial. It smoothly slows into the supplied final composition of the real Petronas Twin Towers and KL Tower. A continuous drone ascent with powerful foreground-to-background parallax; the bridge passes close to the lens as a natural occlusion, revealing the city beyond. Daylight gently cools into blue hour during the ascent. Preserve real full-scale architecture, people and atmosphere. No hard cuts, no dissolve, no black frames, no montage, no morphing towers, no cartoon, no text. Exact final-frame alignment for continuation into the existing city shot.",
+    "firstFrame": {
+      "file": "build-out.jpg",
+      "source": "build",
+      "time": 7
+    },
+    "lastFrame": {
+      "file": "skyline-in.jpg",
+      "source": "skyline",
+      "time": 0
+    }
+  }
+]

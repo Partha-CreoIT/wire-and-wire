@@ -1,10 +1,10 @@
-import { WorldFilm } from '@/components/WorldFilm';
+import { CinematicStory } from '@/components/CinematicStory';
 import { HomeStorySections } from '@/components/PageContent';
 
 export default function Home() {
   return (
     <>
-      <WorldFilm />
+      <CinematicStory />
       <HomeStorySections />
     </>
   );
