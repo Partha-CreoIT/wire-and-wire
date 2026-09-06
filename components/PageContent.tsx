@@ -23,14 +23,6 @@ import { ProjectGalleryMotion } from './ProjectGalleryMotion';
 import { ProductWorldFilm } from './ProductWorldFilm';
 import styles from './ContentSections.module.css';
 
-const applications = productFamilies.flatMap((family) =>
-  family.applications.map((application) => ({
-    ...application,
-    family: family.name,
-    image: hdImage(application.image ?? family.image),
-  })),
-);
-
 const routeCards = [
   {
     href: '/products',
@@ -47,8 +39,8 @@ const routeCards = [
   {
     href: '/about',
     label: 'About',
-    title: 'People, values and governance.',
-    body: 'The team, the CEO, the corporate directory and the CSR archive of the Kuala Lumpur company.',
+    title: 'Leadership with purpose.',
+    body: 'Meet our leadership and discover our commitment to customers and communities.',
   },
 ];
 
@@ -272,14 +264,18 @@ function ProductFamilySection() {
     <section className="section--dark" data-theme="dark">
       <div className="layout">
         <SectionHead
-          label="What we make"
-          title="Five families of tension steel."
-          intro="Every product branch from the legacy site is represented: PC strand, PC wire, PC bar, galvanized strand and wire, plus other drawn wire products."
+          label="Our product range"
+          title="The right steel for your application."
+          intro="Explore our five product families for construction, infrastructure and industry. Each product page covers available variants, uses and technical details."
         />
         <RevealGroup as="ol" className={styles.products}>
           {productFamilies.map((p, i) => (
             <li key={p.slug} className={styles.product}>
-              <Link className={styles.productLink} href={`/products/${p.slug}`}>
+              <Link
+                className={styles.productLink}
+                href={`/products/${p.slug}`}
+                aria-label={`Explore ${p.name}`}
+              >
                 <img
                   className={styles.productImg}
                   src={hdImage(p.image)}
@@ -295,70 +291,16 @@ function ProductFamilySection() {
                 <ul className={styles.chips}>
                   <li className="mono-sm">{p.applications.length} applications</li>
                   {p.variants && (
-                    <li className="mono-sm">{p.variants.length} variants</li>
+                    <li className="mono-sm">
+                      {p.variants.length} {p.variants.length === 1 ? 'variant' : 'variants'}
+                    </li>
                   )}
                 </ul>
-                <span className={styles.storyLink}>Open product</span>
+                <span className={styles.storyLink}>
+                  Explore {p.name} <span aria-hidden="true">↗</span>
+                </span>
               </Link>
             </li>
-          ))}
-        </RevealGroup>
-      </div>
-    </section>
-  );
-}
-
-function ProductDataSection() {
-  return (
-    <section id="product-data" className="section--light" data-theme="light">
-      <div className="layout">
-        <SectionHead
-          label="Product data"
-          title="The old product tree, rebuilt as usable content."
-          intro="The legacy site separated core products, variants and applications across many Joomla pages. Here they are consolidated into a scannable technical surface."
-        />
-        <RevealGroup className={styles.productDetailGrid}>
-          {productFamilies.map((family) => (
-            <article key={family.slug} className={styles.detailPanel}>
-              <div className={styles.detailPanelHead}>
-                <img src={hdImage(family.image)} alt={family.name} loading="lazy" />
-                <div>
-                  <p className="mono-sm">{family.label}</p>
-                  <h3 className="h5">{family.name}</h3>
-                </div>
-              </div>
-              <div className={styles.detailCopy}>
-                {family.detail.map((paragraph) => (
-                  <p key={paragraph} className="body-sm">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-              {family.variants && (
-                <div className={styles.variantBlock}>
-                  <h4 className={`mono ${styles.colLabel}`}>Variants</h4>
-                  <ul className={styles.plainList}>
-                    {family.variants.map((variant) => (
-                      <li key={variant.name}>
-                        {variant.image && (
-                          <img
-                            className={styles.variantImg}
-                            src={hdImage(variant.image)}
-                            alt={variant.name}
-                            loading="lazy"
-                          />
-                        )}
-                        <div>
-                          <strong>{variant.name}</strong>
-                          <span>{variant.description}</span>
-                          {variant.uses && <small>{variant.uses.join(' / ')}</small>}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </article>
           ))}
         </RevealGroup>
       </div>
@@ -541,8 +483,8 @@ function FamilyOverviewSection({ family }: { family: ProductFamily }) {
         <div className="layout">
           <SectionHead
             label="Product data"
-            title={`${family.name}: product details and application archive.`}
-            intro="The product material from the legacy site is preserved here as readable, routed content below the cinematic product story."
+            title={`${family.name}: properties and performance.`}
+            intro="Explore the product range, key properties and available variants to help select the right material for your project."
           />
           <RevealGroup className={styles.familyDetailGrid}>
             <article className={styles.familySpecPanel}>
@@ -613,7 +555,7 @@ export function ProductFamilyPageContent({ family }: { family: ProductFamily }) 
           <SectionHead
             label="Applications"
             title={`${family.applications.length} ${family.name} applications.`}
-            intro="Application pages from the old product tree are kept as product-specific records."
+            intro={`Explore construction and industrial applications for ${family.name}.`}
           />
           <RevealGroup className={styles.applicationGrid}>
             {family.applications.map((application) => (
@@ -640,35 +582,6 @@ export function ProductFamilyPageContent({ family }: { family: ProductFamily }) 
 
       <ContactFooter />
     </div>
-  );
-}
-
-function ApplicationsSection() {
-  return (
-    <section className="section--dark" data-theme="dark">
-      <div className="layout">
-        <SectionHead
-          label="Applications"
-          title={`${applications.length} product applications and use cases.`}
-          intro="These are the specific use cases from the old product pages, preserving the engineering context instead of burying it under generic product cards."
-        />
-        <RevealGroup className={styles.applicationGrid}>
-          {applications.map((application) => (
-            <article
-              key={`${application.family}-${application.name}`}
-              className={styles.applicationCard}
-            >
-              <img src={application.image} alt={application.name} loading="lazy" />
-              <p className="mono-sm">{application.family}</p>
-              <h3 className="h6">{application.name}</h3>
-              {application.description && (
-                <p className="body-sm">{application.description}</p>
-              )}
-            </article>
-          ))}
-        </RevealGroup>
-      </div>
-    </section>
   );
 }
 
@@ -713,73 +626,65 @@ function ProductFilmSection() {
 
 function AboutSection() {
   return (
-    <section className="section--light" data-theme="light">
+    <section id="leadership" className="section--dark" data-theme="dark">
       <div className="layout">
-        <SectionHead label="People" title="Built from Kuala Lumpur, outward." />
-        <RevealGroup className={styles.aboutGrid}>
-          <article className={styles.statementPanel}>
-            <p className="mono-sm">The team</p>
-            <h3 className="h5">Passion, perseverance, supply discipline.</h3>
-            <p className="body-sm">{companyProfile.team}</p>
-          </article>
-          <article className={styles.quotePanel}>
-            <p className="mono-sm">Message from the CEO</p>
-            <h3 className="h5">{companyProfile.ceo.name}</h3>
-            {companyProfile.ceo.paragraphs.map((paragraph) => (
-              <p key={paragraph} className="body-sm">
+        <RevealGroup className={styles.leadershipGrid}>
+          <article className={styles.leadershipCopy}>
+            <p className="mono has-pin--top-left">Our leadership</p>
+            <h2 className="h2">{companyProfile.ceo.name}</h2>
+            <p className={`mono ${styles.leadershipRole}`}>{companyProfile.ceo.title}</p>
+            <h3 className="h5">Leadership through enterprise and service.</h3>
+            {companyProfile.ceo.profile.map((paragraph) => (
+              <p key={paragraph} className={`body-sm ${styles.leadershipBody}`}>
                 {paragraph}
               </p>
             ))}
-            <p className={`mono-sm ${styles.signature}`}>
-              {companyProfile.ceo.title}
-            </p>
+            <a className={styles.storyLink} href="#community">
+              Our community initiatives <span aria-hidden="true">↓</span>
+            </a>
           </article>
+          <aside className={styles.recognitionPanel} aria-labelledby="recognition-title">
+            <p className={`mono-sm ${styles.recognitionLabel}`}>Humanitarian recognition</p>
+            <h3 id="recognition-title" className="h5">Melvin Jones Humanitarian Award</h3>
+            <p className={`body-sm ${styles.leadershipBody}`}>Presented to Dato’ Anathkumar Alagu by Lions Clubs International Foundation.</p>
+            <figure className={styles.recognitionFigure}>
+              <img
+                src={companyCsrImage('/legacy/images/csr/csr4.png')}
+                alt="Dato’ Anathkumar Alagu at the award presentation with Lions Club leaders"
+                width={1600}
+                height={1200}
+                loading="lazy"
+              />
+              <figcaption className="mono-sm">
+                With the Malaysian Lions Club Governor and the President of Lions Club Bukit Kiara.
+                <span className={styles.photoCredit}>Digitally enhanced archive photograph.</span>
+              </figcaption>
+            </figure>
+          </aside>
         </RevealGroup>
       </div>
     </section>
   );
 }
 
-function GovernanceSection() {
+function CompanyCommitmentSection() {
   return (
-    <section className="section--dark" data-theme="dark">
+    <section className="section--light" data-theme="light">
       <div className="layout">
-        <SectionHead label="Company data" title="Governance and corporate directory." />
-        <RevealGroup className={styles.governanceGrid}>
-          <article>
-            <h3 className={`mono ${styles.colLabel}`}>Governance</h3>
-            <p className="body-sm">{companyProfile.governance.description}</p>
-            <p className="body-sm">{companyProfile.governance.guidelines}</p>
-            <ul className={styles.compactList}>
-              {companyProfile.governance.items.map((item) => (
-                <li key={item} className="mono-sm">
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </article>
-          <article>
-            <h3 className={`mono ${styles.colLabel}`}>Registered office</h3>
-            <p className="body-sm">
-              <Address lines={companyProfile.directory.registeredOffice} />
-            </p>
-            <h3 className={`mono ${styles.colLabel}`}>Correspondence</h3>
-            <p className="body-sm">
-              <Address lines={companyProfile.directory.correspondenceOffice} />
-            </p>
-            <p className={`mono-sm ${styles.founding}`}>
-              Founded {companyProfile.directory.foundingDate}
-            </p>
-          </article>
-        </RevealGroup>
-        <RevealGroup className={styles.partnerGrid}>
-          {companyProfile.directory.partners.map((partner) => (
-            <article key={`${partner.role}-${partner.name}`}>
-              <p className="mono-sm">{partner.role}</p>
-              <h3 className="body-sm">{partner.name}</h3>
-              <p className="mono-sm">
-                <Address lines={partner.address} />
-              </p>
+        <SectionHead
+          label="Our company"
+          title="Experience you can depend on."
+          intro={companyProfile.team}
+        />
+        <RevealGroup className={styles.commitmentGrid}>
+          {[
+            { title: 'Customer relationships', text: 'Our service extends beyond supply, with a team focused on understanding your needs and providing ongoing support.' },
+            { title: 'Product knowledge', text: 'Our senior management brings more than 100 years of combined experience in distribution, trading, logistics and services.' },
+            { title: 'Trust and reliability', text: 'Quality, dependable supply and clear communication guide the way we work with customers and partners.' },
+          ].map((item) => (
+            <article key={item.title}>
+              <h3 className="h6">{item.title}</h3>
+              <p className="body-sm">{item.text}</p>
             </article>
           ))}
         </RevealGroup>
@@ -789,22 +694,46 @@ function GovernanceSection() {
 }
 
 function CsrSection() {
+  // The award has its own leadership feature; this gallery focuses on service.
+  const stories = companyProfile.csr.filter(
+    (item) => item.image && item.id !== 'humanitarian-award',
+  );
+  const communityNotes = companyProfile.csr.filter((item) => !item.image);
+
   return (
-    <section className="section--light" data-theme="light">
+    <section id="community" className="section--light" data-theme="light">
       <div className="layout">
-        <SectionHead
-          label="CSR"
-          title="Community work, kept in the record."
-          intro="The old CSR page contained the richest human material on the site. It is now presented as a visual archive instead of a long static article."
-        />
+        <div className={styles.communityHead}>
+          <div>
+            <p className="mono has-pin--top-left">Community & care</p>
+            <h2 className="h3">Making a difference, together.</h2>
+          </div>
+          <p className="body-sm">
+            From education and food assistance to sight care and disaster relief,
+            our community work puts care into practice. Led by our CEO and
+            supported by our team, these initiatives help people build a better future.
+          </p>
+        </div>
         <CsrGalleryMotion>
           <div className={styles.csrGrid}>
-            {companyProfile.csr.map((item) => (
-              <article key={item.title} className={styles.csrItem} data-csr-card>
-                <div className={styles.csrMedia} data-csr-media>
-                  <img src={companyCsrImage(item.image)} alt={item.title} loading="lazy" />
-                </div>
+            {stories.map((item, index) => (
+              <article key={item.id} className={styles.csrItem} data-csr-card>
+                {item.image && (
+                  <div className={styles.csrMedia} data-csr-media>
+                    <img
+                      src={companyCsrImage(item.image)}
+                      alt={item.title}
+                      width={1600}
+                      height={1200}
+                      loading="lazy"
+                    />
+                  </div>
+                )}
                 <div className={styles.csrBody}>
+                  <div className={`mono-sm ${styles.csrMeta}`}>
+                    <span>{item.category}</span>
+                    <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                  </div>
                   <h3 className="h6">{item.title}</h3>
                   <p className="body-sm">{item.text}</p>
                 </div>
@@ -812,6 +741,16 @@ function CsrSection() {
             ))}
           </div>
         </CsrGalleryMotion>
+        <p className={`mono-sm ${styles.galleryCredit}`}>Digitally enhanced photographs from the company archive.</p>
+        {communityNotes.map((item) => (
+          <aside key={item.id} className={styles.communityNote} aria-labelledby={item.id}>
+            <div>
+              <p className="mono-sm">{item.category}</p>
+              <h3 id={item.id} className="h6">{item.title}</h3>
+            </div>
+            <p className="body-sm">{item.text}</p>
+          </aside>
+        ))}
       </div>
     </section>
   );
@@ -946,8 +885,6 @@ export function ProductsPageContent() {
       <ProductWorldFilm />
       <div id="product-archive" className={styles.wrap} data-site-content>
         <ProductFamilySection />
-        <ProductDataSection />
-        <ApplicationsSection />
         <ContactFooter />
       </div>
     </>
@@ -969,12 +906,12 @@ export function AboutPageContent() {
     <div className={styles.wrap} data-site-content>
       <PageHero
         label="About"
-        title="A Kuala Lumpur wire products company built outward."
-        intro="The team, the message from the CEO, the corporate directory, governance and the CSR archive — the company record in one place."
+        title="Built on trust. Driven by purpose."
+        intro="Since 2001, Wire & Wire Products has served customers from Kuala Lumpur with steel wire expertise and a commitment to lasting relationships. That same commitment extends to the communities we support."
       />
       <AboutSection />
-      <GovernanceSection />
       <CsrSection />
+      <CompanyCommitmentSection />
       <ContactFooter />
     </div>
   );

@@ -515,10 +515,14 @@ export const companyProfile = {
     'International Vision',
   ],
   team:
-    'Wire & Wire Products (M) Sdn Bhd began in 2001 in a small suburban town in Kuala Lumpur. Through passion and perseverance, the company grew into one of the region\'s notable steel wire suppliers, supported by a dedicated team focused on customer needs and superior material quality.',
+    'Established in Kuala Lumpur in 2001, Wire & Wire Products (M) Sdn. Bhd. brings together an experienced team in steel wire supply, trading and logistics, with a shared commitment to customer service and product quality.',
   ceo: {
-    name: "Dato' Anathkumar Alagu",
+    name: 'Dato’ Anathkumar Alagu',
     title: 'Chief Executive Officer',
+    profile: [
+      'Dato’ Anathkumar Alagu leads Wire & Wire Products with a focus on enduring customer relationships, attentive service and a motivated team.',
+      'His commitment to service extends beyond business. As chair of the company’s social responsibility programme, he guides initiatives supporting children’s education, food assistance and community wellbeing.',
+    ],
     paragraphs: [
       'Wire & Wire Products is the result of great passion and a will to succeed. We take great care in ensuring comfort to our clients and our services extend well beyond the sale of our products.',
       'My team and I are ever willing to go the extra mile, identify customer needs and provide after-sale support and services. I believe in a win-win situation, achieved when clients are satisfied and staff are motivated.',
@@ -590,41 +594,57 @@ export const companyProfile = {
   },
   csr: [
     {
+      id: 'sin-chew-foundation',
+      category: 'Disaster relief',
       title: 'Sin Chew Foundation donation',
       image: '/legacy/images/csr/csr6.png',
       text: 'Cash donation to the Sin Chew Foundation to help victims of the 2008 Sichuan earthquake in China.',
     },
     {
+      id: 'atmah-foundation',
+      category: 'Education & wellbeing',
       title: 'ATMAH Foundation support',
       image: '/legacy/images/csr/csr3.png',
       text: 'Contributions to the Association to Mobilize All Humanity to support underprivileged children with education and wellbeing.',
     },
     {
+      id: 'humanitarian-award',
+      category: 'Humanitarian recognition',
       title: 'Melvin Jones Humanitarian Award',
       image: '/legacy/images/csr/csr4.png',
-      text: "Dato' Anathkumar was awarded the Melvin Jones Humanitarian Award by Lions Club International Foundation.",
+      text: 'Dato’ Anathkumar Alagu received the Melvin Jones Humanitarian Award from Lions Clubs International Foundation.',
     },
     {
+      id: 'feed-the-needy',
+      category: 'Food assistance',
       title: 'Feed The Needy Programme',
       image: '/legacy/images/csr/csr5.png',
       text: 'Organizers and sponsors of a daily programme for the blind, homeless and anyone in need.',
     },
     {
+      id: 'sight-conservation',
+      category: 'Health & sight',
       title: 'Sight conservation',
       image: '/legacy/images/csr/csr1.png',
       text: 'Annual contribution to Lions Club Bukit Kiara for cataract operations for underprivileged elderly people.',
     },
     {
+      id: 'childrens-carnival',
+      category: 'Children & opportunity',
       title: "Children's Carnival Talent",
       image: '/legacy/images/csr/csr7.png',
       text: 'Annual charity event for over 200 primary school students from impoverished backgrounds and broken homes.',
     },
     {
+      id: 'home-refurbishment',
+      category: 'Care for families',
       title: 'Home refurbishment',
-      image: '/legacy/images/stories/1.jpg',
+      image: undefined,
       text: 'Painting and refurbishment of a dilapidated home for two boys suffering from Krabbe disease.',
     },
     {
+      id: 'ponggal-2017',
+      category: 'Education in India',
       title: 'WWP Ponggal Carnival 2017',
       image: '/legacy/images/stories/4.jpg',
       text: 'Annual charity event in India attended by 996 school children from impoverished villages, with meals, uniforms, school bags, shoes and stationery.',
