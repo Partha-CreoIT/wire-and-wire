@@ -23,10 +23,9 @@ export function WorldFilm() {
 
   useEffect(() => {
     const host = ref.current;
-    if (!host || host.dataset.swMounted) return;
-    host.dataset.swMounted = '1'; // StrictMode double-invoke guard
+    if (!host) return;
 
-    mountLetsScroll(host, {
+    return mountLetsScroll(host, {
       nav: false, // single wayfinding pattern: the labelled route rail
       hint: 'scroll to follow the wire',
       diveScroll: 1.5,
@@ -37,6 +36,7 @@ export function WorldFilm() {
           label: 'The Mill',
           still: '/world/mill.webp',
           clip: clip(1),
+          clipMobile: FILM_READY ? '/world/vid/mobile/leg-1.mp4' : undefined,
           accent: COPPER,
           scroll: 1.7,
           linger: 0.35,
@@ -52,6 +52,7 @@ export function WorldFilm() {
           label: 'The Strand',
           still: '/world/strand.webp',
           clip: clip(2),
+          clipMobile: FILM_READY ? '/world/vid/mobile/leg-2.mp4' : undefined,
           accent: COPPER,
           scroll: 1.4,
           eyebrow: 'Drawn & wound',
@@ -66,6 +67,7 @@ export function WorldFilm() {
           label: 'The Build',
           still: '/world/build.webp',
           clip: clip(3),
+          clipMobile: FILM_READY ? '/world/vid/mobile/leg-3.mp4' : undefined,
           accent: COPPER,
           scroll: 1.5,
           linger: 0.3,
@@ -81,6 +83,7 @@ export function WorldFilm() {
           label: 'The Skyline',
           still: '/world/skyline.webp',
           clip: clip(4),
+          clipMobile: FILM_READY ? '/world/vid/mobile/leg-4.mp4' : undefined,
           accent: COPPER,
           scroll: 1.8,
           linger: 0.45,

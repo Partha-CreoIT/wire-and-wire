@@ -2,6 +2,8 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // The development badge otherwise covers the first mobile story chapter.
+  devIndicators: false,
   async redirects() {
     // The company record moved to /about (and /investor was retired).
     return [

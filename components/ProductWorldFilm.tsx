@@ -24,13 +24,12 @@ const overviewBodies = [
   'Unbonded strand and other drawn wires extend the range into bridges, high-rise structures and manufacturing supply.',
 ];
 
-function mountOnce(
+function mountFilm(
   host: HTMLDivElement | null,
   config: Parameters<typeof mountLetsScroll>[1],
 ) {
-  if (!host || host.dataset.swMounted) return;
-  host.dataset.swMounted = '1';
-  mountLetsScroll(host, config);
+  if (!host) return;
+  return mountLetsScroll(host, config);
 }
 
 function familyTags(family: ProductFamily) {
@@ -43,7 +42,7 @@ export function ProductWorldFilm() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    mountOnce(ref.current, {
+    return mountFilm(ref.current, {
       nav: false,
       hint: 'scroll product story',
       diveScroll: 1.15,
@@ -58,6 +57,7 @@ export function ProductWorldFilm() {
           label: beat.label,
           still: asset.poster,
           clip: asset.clip,
+          clipMobile: asset.clipMobile,
           accent: accents[index % accents.length],
           scroll: index === 0 || index === productFilmPlan.length - 1 ? 1.45 : 1.18,
           linger: index === 0 || index === productFilmPlan.length - 1 ? 0.36 : 0.22,
@@ -96,7 +96,7 @@ export function ProductFamilyWorldFilm({ family }: { family: ProductFamily }) {
   useEffect(() => {
     const asset = productFilmAssetForFamily(family.slug);
 
-    mountOnce(ref.current, {
+    return mountFilm(ref.current, {
       nav: false,
       hint: 'scroll into the catalogue',
       diveScroll: 1.05,
@@ -108,6 +108,7 @@ export function ProductFamilyWorldFilm({ family }: { family: ProductFamily }) {
           label: family.name,
           still: asset.poster,
           clip: asset.clip,
+          clipMobile: asset.clipMobile,
           accent: accents[0],
           scroll: 1.6,
           linger: 0.38,

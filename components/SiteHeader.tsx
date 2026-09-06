@@ -3,7 +3,8 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { getLenis } from '@/lib/motion';
 import styles from './SiteHeader.module.css';
 
 const navItems = [
@@ -25,6 +26,9 @@ export function SiteHeader() {
   const [solid, setSolid] = useState(false);
   const [tone, setTone] = useState<'light' | 'dark'>('light');
   const [open, setOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const burgerRef = useRef<HTMLButtonElement>(null);
+  const active = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
 
   useEffect(() => {
     let marker: Element | null = null;
@@ -74,21 +78,54 @@ export function SiteHeader() {
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
+    const lenis = getLenis();
+    lenis?.stop();
     document.body.style.overflow = 'hidden';
+    const desktop = window.matchMedia('(min-width: 761px)');
+    const closeOnDesktop = () => { if (desktop.matches) setOpen(false); };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setOpen(false);
+        burgerRef.current?.focus();
+      }
+      if (event.key !== 'Tab') return;
+      const links = Array.from(headerRef.current?.querySelectorAll<HTMLElement>('a[href], button') || [])
+        .filter(element => element.getClientRects().length > 0 && !element.closest('[inert]'));
+      const first = links[0];
+      const last = links[links.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    desktop.addEventListener('change', closeOnDesktop);
+    closeOnDesktop();
     return () => {
       document.body.style.overflow = previous;
+      lenis?.start();
+      document.removeEventListener('keydown', onKeyDown);
+      desktop.removeEventListener('change', closeOnDesktop);
     };
   }, [open]);
 
   return (
     <header
+      ref={headerRef}
+      role={open ? 'dialog' : undefined}
+      aria-modal={open || undefined}
+      aria-label={open ? 'Site menu' : undefined}
       className={styles.header}
       data-solid={solid || undefined}
       data-tone={tone}
       data-open={open || undefined}
     >
       <div className={styles.inner}>
-        <Link href="/" className={styles.brand} aria-label="Wire & Wire home">
+        <Link href="/" className={styles.brand} aria-label="Wire & Wire home" onClick={() => setOpen(false)}>
           <img
             src="/world/logo.png"
             alt="Wire & Wire Products (M) Sdn Bhd"
@@ -100,7 +137,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              aria-current={pathname === item.href ? 'page' : undefined}
+              aria-current={active(item.href) ? 'page' : undefined}
             >
               {item.label}
             </Link>
@@ -110,6 +147,7 @@ export function SiteHeader() {
           Enquire
         </a>
         <button
+          ref={burgerRef}
           type="button"
           className={styles.burger}
           aria-label={open ? 'Close menu' : 'Open menu'}
@@ -122,14 +160,14 @@ export function SiteHeader() {
         </button>
       </div>
 
-      <div id="mobile-menu" className={styles.menu} data-open={open || undefined}>
+      <div id="mobile-menu" className={styles.menu} data-open={open || undefined} inert={!open} data-lenis-prevent>
         <nav aria-label="Mobile navigation">
           <ol className={styles.menuList}>
             {navItems.map((item, i) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  aria-current={pathname === item.href ? 'page' : undefined}
+                  aria-current={active(item.href) ? 'page' : undefined}
                   onClick={() => setOpen(false)}
                 >
                   <span className={`mono-sm ${styles.menuNum}`}>

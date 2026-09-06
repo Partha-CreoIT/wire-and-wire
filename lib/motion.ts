@@ -57,6 +57,7 @@ export function initSmoothScroll(): Cleanup {
     easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
     syncTouch: false,
+    anchors: true,
   });
   lenisInstance = lenis;
   lenis.on('scroll', ScrollTrigger.update);
@@ -79,9 +80,15 @@ export function initSmoothScroll(): Cleanup {
 }
 
 export function scrollTo(target: string | number, offset = 0): void {
-  if (lenisInstance) lenisInstance.scrollTo(target, { offset, duration: 1.4 });
-  else if (typeof target === 'string')
-    document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' });
+  const element = typeof target === 'string' ? document.querySelector<HTMLElement>(target) : null;
+  if (typeof target === 'string' && !element) return;
+  const top = typeof target === 'number' ? target : element!.getBoundingClientRect().top + window.scrollY;
+  if (lenisInstance) {
+    lenisInstance.resize();
+    lenisInstance.scrollTo(top, { offset, duration: 1.4, immediate: reduced() });
+  } else {
+    window.scrollTo({ top: top + offset, behavior: reduced() ? 'instant' : 'smooth' });
+  }
 }
 
 export function textReveal(

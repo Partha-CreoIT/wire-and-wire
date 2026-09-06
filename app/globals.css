@@ -365,3 +365,14 @@ p { text-wrap: pretty; }
   .sw-root .sw-copy__cta  { margin-top: 1.4rem; }
   .sw-root .sw-hint { display: none; }
 }
+
+@media (max-width: 860px) and (max-height: 700px) {
+  .sw-root .sw-copy { bottom: calc(80px + env(safe-area-inset-bottom)); }
+  .sw-root .sw-copy__eyebrow { margin-top: 0.5rem; }
+  .sw-root .sw-copy__title { margin-top: 0.75rem; font-size: 2rem; letter-spacing: 0; }
+  .sw-root .sw-copy__body { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.5; }
+  .sw-root .sw-copy__tags { margin-top: 1rem; gap: 6px; }
+  .sw-root .sw-copy__tags li { padding: 6px 10px; font-size: 0.75rem; }
+  .sw-root .sw-copy__cta { margin-top: 1rem; gap: 8px; }
+  .sw-root .sw-btn { min-height: 44px; padding: 12px 16px; font-size: 0.875rem; }
+}

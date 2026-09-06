@@ -20,6 +20,8 @@ reference/*.html
 # rendered intermediates
 assets-source/3d/_render/
 .gstack/
+test-results/
+playwright-report/
 
 # ...but keep the world film's story, prompts + runbook (small text) in git
 !assets-source/world/

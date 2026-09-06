@@ -127,11 +127,12 @@
   z-index: 2;
   flex: 0 0 auto;
   margin-left: auto;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
-  background: transparent;
+  background: hsl(var(--surface-hsl) / 0.92);
+  border-radius: 50%;
   cursor: pointer;
   flex-direction: column;
   align-items: center;
@@ -149,7 +150,7 @@
     background var(--dur-fast) var(--ease-out);
 }
 .header[data-tone='dark']:not([data-solid]):not([data-open]) .burger span {
-  background: var(--surface);
+  background: var(--ink);
 }
 .header[data-open] .burger span {
   background: var(--ink);
@@ -173,6 +174,7 @@
     calc(28px + env(safe-area-inset-bottom));
   background: var(--surface);
   overflow-y: auto;
+  overscroll-behavior: contain;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
@@ -209,8 +211,8 @@
   gap: 1rem;
   padding: 1.05rem 0.25rem;
   text-decoration: none;
-  font: 500 clamp(1.6rem, 6.5vw, 2rem) / 1.1 var(--font-display);
-  letter-spacing: -0.01em;
+  font: 500 2rem / 1.1 var(--font-display);
+  letter-spacing: 0;
   color: var(--ink);
 }
 .menuList a[aria-current='page'] {

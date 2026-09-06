@@ -2,6 +2,7 @@ export interface ProductFilmAsset {
   id: string;
   rawClip: string;
   clip: string;
+  clipMobile: string;
   poster: string;
 }
 
@@ -10,36 +11,42 @@ export const productFilmAssets: ProductFilmAsset[] = [
     id: 'pc-strand',
     rawClip: '/world/product-film/beat-1-pc-strand.mp4',
     clip: '/world/product-film/scroll/beat-1-pc-strand.mp4',
+    clipMobile: '/world/product-film/scroll/mobile/beat-1-pc-strand.mp4',
     poster: '/world/product-film/posters/beat-1-pc-strand.webp',
   },
   {
     id: 'prestressing',
     rawClip: '/world/product-film/beat-2-prestress.mp4',
     clip: '/world/product-film/scroll/beat-2-prestress.mp4',
+    clipMobile: '/world/product-film/scroll/mobile/beat-2-prestress.mp4',
     poster: '/world/product-film/posters/beat-2-prestress.webp',
   },
   {
     id: 'pc-wire',
     rawClip: '/world/product-film/beat-3-pc-wire.mp4',
     clip: '/world/product-film/scroll/beat-3-pc-wire.mp4',
+    clipMobile: '/world/product-film/scroll/mobile/beat-3-pc-wire.mp4',
     poster: '/world/product-film/posters/beat-3-pc-wire.webp',
   },
   {
     id: 'pc-bar',
     rawClip: '/world/product-film/beat-4-pc-bar.mp4',
     clip: '/world/product-film/scroll/beat-4-pc-bar.mp4',
+    clipMobile: '/world/product-film/scroll/mobile/beat-4-pc-bar.mp4',
     poster: '/world/product-film/posters/beat-4-pc-bar.webp',
   },
   {
     id: 'galvanized',
     rawClip: '/world/product-film/beat-5-galvanized.mp4',
     clip: '/world/product-film/scroll/beat-5-galvanized.mp4',
+    clipMobile: '/world/product-film/scroll/mobile/beat-5-galvanized.mp4',
     poster: '/world/product-film/posters/beat-5-galvanized.webp',
   },
   {
     id: 'unbonded-other',
     rawClip: '/world/product-film/beat-6-unbonded-span.mp4',
     clip: '/world/product-film/scroll/beat-6-unbonded-span.mp4',
+    clipMobile: '/world/product-film/scroll/mobile/beat-6-unbonded-span.mp4',
     poster: '/world/product-film/posters/beat-6-unbonded-span.webp',
   },
 ];
