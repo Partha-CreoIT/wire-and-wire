@@ -30,7 +30,7 @@ const chapters = [
     body: 'Steel carries tension. Concrete carries compression. Working together, they give engineers the strength to span further.',
     caption: '03 — The work behind the crossing',
     href: '/products/pc-strand#applications', link: 'See the applications',
-    alt: 'Engineers inspect a full-scale concrete viaduct construction site in a tropical Malaysian setting.',
+    alt: 'A close view of steel strand anchorage on an elevated construction deck, with Kuala Lumpur beyond.',
   },
   {
     id: 'skyline', label: 'The world', eyebrow: 'Malaysia. Connected to the world.',
@@ -50,6 +50,7 @@ export function CinematicStory() {
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const film = useRef<ScrollFilm | null>(null);
   const progressRef = useRef(0);
   const current = useRef(0);
@@ -89,10 +90,11 @@ export function CinematicStory() {
 
   useEffect(() => {
     const video = videoRef.current;
+    const canvas = canvasRef.current;
     mediaReady.current = false;
     setReady(false);
-    if (!video || !mediaEnabled) { showProgress(progressRef.current); return; }
-    const controller = mountScrollFilm(video, {
+    if (!video || !canvas || !mediaEnabled) { showProgress(progressRef.current); return; }
+    const controller = mountScrollFilm(video, canvas, {
       src: `/world/cinematic/${portrait ? 'mobile/' : ''}journey.mp4`,
       initialProgress: progressRef.current,
       onFrame: progress => {
@@ -161,7 +163,10 @@ export function CinematicStory() {
               <img src={`/world/cinematic/${item.id}.webp`} alt={item.alt} fetchPriority={index === 0 ? 'high' : 'low'} />
             </picture>
           </figure>)}
-          {mediaEnabled && <video ref={videoRef} className={styles.video} data-ready={ready || undefined} muted playsInline preload="auto" aria-hidden="true" />}
+          {mediaEnabled && <>
+            <video ref={videoRef} className={styles.video} muted playsInline preload="auto" aria-hidden="true" />
+            <canvas ref={canvasRef} className={styles.video} data-ready={ready || undefined} aria-hidden="true" />
+          </>}
         </div>
         <div className={styles.shade} aria-hidden="true" />
 

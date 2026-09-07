@@ -52,12 +52,22 @@ export function initSmoothScroll(): Cleanup {
     return noop;
   }
 
-  const lenis = new Lenis({
+  const lenis: Lenis = new Lenis({
     duration: 1.1,
     easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
     syncTouch: false,
     anchors: true,
+    virtualScroll: ({ event }) => {
+      if (event.type === 'wheel') {
+        // Fine wheel devices already supply momentum. Adding another easing
+        // tail makes consecutive gestures hesitate throughout the film.
+        const story = document.querySelector<HTMLElement>('[data-cinematic-story]');
+        const bounds = story?.getBoundingClientRect();
+        lenis.options.smoothWheel = !bounds || bounds.bottom <= 0 || bounds.top >= window.innerHeight;
+      }
+      return true;
+    },
   });
   lenisInstance = lenis;
   lenis.on('scroll', ScrollTrigger.update);

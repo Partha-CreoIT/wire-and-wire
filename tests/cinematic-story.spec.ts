@@ -12,16 +12,18 @@ async function scrollFilm(page: Page, seconds: number) {
     window.scrollTo({ top: top + (track.offsetHeight - panel.offsetHeight) * time / 30, behavior: 'instant' });
   }, seconds);
   const video = page.locator(`${story} video`);
-  await expect.poll(() => video.evaluate((v: HTMLVideoElement, time) => Math.abs(v.currentTime - (v.duration - 1 / 24) * time / 30), seconds)).toBeLessThan(0.08);
+  // The decoder preloads up to two neighbouring frames for the visible canvas.
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement, time) => Math.abs(v.currentTime - (v.duration - 1 / 24) * time / 30), seconds)).toBeLessThan(0.13);
   await expect(video).toHaveJSProperty('seeking', false);
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
 }
 
 async function paintedFrame(page: Page) {
-  return page.locator(`${story} video`).evaluate((v: HTMLVideoElement) => {
+  return page.locator(`${story} canvas`).evaluate((surface: HTMLCanvasElement) => {
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 36;
-    canvas.getContext('2d')!.drawImage(v, 0, 0, 64, 36);
+    canvas.getContext('2d')!.drawImage(surface, 0, 0, 64, 36);
     return canvas.toDataURL();
   });
 }
@@ -31,7 +33,7 @@ test('scrolling paints the full film, reverses it and holds its frame when scrol
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
   const video = page.locator(`${story} video`);
-  await expect(video).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
   await expect(page.getByRole('button', { name: /watch|play|pause/i })).toHaveCount(0);
   expect(await video.evaluate((v: HTMLVideoElement) => v.duration)).toBeCloseTo(30, 1);
   const source = await video.getAttribute('src');
@@ -51,6 +53,77 @@ test('scrolling paints the full film, reverses it and holds its frame when scrol
   await page.waitForTimeout(300);
   expect(await paintedFrame(page)).toBe(held);
   expect(errors).toEqual([]);
+});
+
+test.describe('desktop wheel input', () => {
+  test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false });
+
+  test('small wheel deltas blend the origin-to-material transition and hold when scrolling stops', async ({ page }) => {
+    for (const path of ['/?p=0', '/']) {
+      await page.goto(path);
+      await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
+      await scrollFilm(page, 7.8);
+      const frames = new Set<string>();
+      const positions = new Set<number>();
+      // One-pixel wheel updates cross fewer than ten source frames here.
+      for (let i = 0; i < 36; i++) {
+        await page.mouse.wheel(0, 1);
+        await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+        frames.add(await paintedFrame(page));
+        positions.add(await page.evaluate(() => scrollY));
+      }
+      // Device pixel ratios can coalesce one-pixel inputs; check actual movement.
+      expect(positions.size).toBeGreaterThan(10);
+      expect(frames.size).toBeGreaterThan(positions.size * 0.8);
+      await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
+      const held = await paintedFrame(page);
+      await page.waitForTimeout(300);
+      expect(await paintedFrame(page)).toBe(held);
+    }
+  });
+
+  test('successive wheel gestures settle within every chapter and across all chapter boundaries', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
+    for (const time of [3, 7.8, 11, 15.8, 19.5, 22.8, 27]) {
+      await scrollFilm(page, time);
+      // Include wheel input over the fixed header while the film is visible.
+      await page.mouse.move(1000, time === 11 ? 30 : 400);
+      for (const direction of [1, 1, -1]) {
+        const before = await paintedFrame(page);
+        await page.evaluate(() => {
+          window.addEventListener('wheel', event => {
+            document.documentElement.dataset.wheelPrevented = String(event.defaultPrevented);
+          }, { once: true, passive: true });
+        });
+        for (const delta of [2, 5, 8, 12, 8, 5, 2, 1]) {
+          await page.mouse.wheel(0, delta * direction);
+          await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+        }
+        await expect(page.locator('html')).toHaveAttribute('data-wheel-prevented', 'false');
+        await page.waitForTimeout(160);
+        const stoppedAt = await page.evaluate(() => scrollY);
+        const held = await paintedFrame(page);
+        expect(held, `Film moves at ${time}s, direction ${direction}`).not.toBe(before);
+        await page.waitForTimeout(200);
+        expect(await page.evaluate(() => scrollY), `No extra wheel inertia at ${time}s`).toBe(stoppedAt);
+        expect(await paintedFrame(page), `No delayed frame jump at ${time}s`).toBe(held);
+      }
+    }
+    await page.getByRole('link', { name: 'Skip the story', exact: true }).click();
+    await expect.poll(() => page.locator('#home-content').evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(100);
+    await expect(page.locator('html')).not.toHaveClass(/lenis-smooth/);
+    await page.mouse.move(1000, 400);
+    await page.mouse.wheel(0, 300);
+    await expect.poll(() => page.locator(story).evaluate(el => el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(0);
+    await page.evaluate(() => {
+      window.addEventListener('wheel', event => {
+        document.documentElement.dataset.wheelPrevented = String(event.defaultPrevented);
+      }, { once: true, passive: true });
+    });
+    await page.mouse.wheel(0, 80);
+    await expect(page.locator('html')).toHaveAttribute('data-wheel-prevented', 'true');
+  });
 });
 
 test('chapter links follow decoded frames and captions clear the connecting moves', async ({ page }) => {
@@ -76,7 +149,7 @@ test('chapter links follow decoded frames and captions clear the connecting move
 test('fast scroll input settles at the latest frame and navigation releases the decoder', async ({ page }) => {
   await page.goto('/');
   const video = page.locator(`${story} video`);
-  await expect(video).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
   await page.evaluate(async () => {
     const track = document.querySelector<HTMLElement>('[data-cinematic-story]')!;
     const distance = track.offsetHeight - (track.firstElementChild as HTMLElement).offsetHeight;
@@ -95,7 +168,7 @@ test('fast scroll input settles at the latest frame and navigation releases the 
   expect(await handle!.evaluate(el => el.getAttribute('src'))).toBeNull();
   await page.goBack();
   await expect(page.locator(`${story} video`)).toHaveCount(1);
-  await expect(page.locator(`${story} video`)).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
   await page.getByRole('link', { name: 'Skip the story', exact: true }).click();
   await expect.poll(() => page.locator('#home-content').evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(100);
 });
@@ -107,7 +180,7 @@ test('resizing switches the film crop without leaving an extra decoder', async (
   await scrollFilm(page, 12);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator(`${story} video`)).toHaveAttribute('src', '/world/cinematic/mobile/journey.mp4');
-  await expect(page.locator(`${story} video`)).toHaveAttribute('data-ready', 'true');
+  await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
   await scrollFilm(page, 19.5);
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator(`${story} video`)).toHaveCount(1);
@@ -148,7 +221,7 @@ test('compact layouts retain readable titles and reachable chapter controls', as
   for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(viewport);
     await page.goto('/');
-    await expect(page.locator(`${story} video`)).toHaveAttribute('data-ready', 'true');
+    await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const title = await page.locator(`${story} h1`).boundingBox();
     expect(title!.y).toBeGreaterThan(65);
