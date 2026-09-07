@@ -58,21 +58,102 @@ test('product navigation replaces the film and returns to its beginning', async 
   await expect(page.locator('.sw-copy h1')).toHaveText('PC Strand');
 });
 
-test('story chapter buttons reveal their copy and do not retain invisible links', async ({ page }) => {
-  for (const { path, count } of [{ path: '/products', count: 6 }]) {
-    await page.goto(path);
-    await expect(page.locator('.sw-route__dot')).toHaveCount(count);
-    for (const index of [...Array.from({ length: count - 1 }, (_, i) => i + 1), 0]) {
-      await page.locator('.sw-route__dot').nth(index).click();
-      await expect.poll(() => page.locator('.sw-copy').nth(index).evaluate(e => Number(getComputedStyle(e).opacity))).toBeGreaterThan(0.8);
-      const inactiveLinks = await page.locator('.sw-copy').evaluateAll(copies => copies
-        .filter(copy => Number(getComputedStyle(copy).opacity) <= 0.5)
-        .flatMap(copy => Array.from(copy.querySelectorAll('a')))
-        .filter(link => !link.closest('[inert]')));
-      expect(inactiveLinks).toHaveLength(0);
-    }
+test('opening products through home never carries the previous footer position', async ({ page }) => {
+  await page.goto('/products/pc-bar');
+  let homePosition = 0;
+  for (const product of ['PC Wire', 'PC Bar', 'PC Strand', 'Galvanized Strand & Wire', 'Other Wires']) {
+    await page.locator('footer').evaluate(el => el.scrollIntoView({ block: 'end', behavior: 'instant' }));
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(1000);
+    await page.getByRole('link', { name: 'Wire & Wire home', exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(homePosition, 0);
+    await page.evaluate(() => document.addEventListener('click', () => {
+      document.documentElement.dataset.leavingScrollY = String(scrollY);
+    }, { once: true, capture: true }));
+    await page.getByRole('link', { name: `Explore ${product}`, exact: true }).click();
+    homePosition = Number(await page.locator('html').getAttribute('data-leaving-scroll-y'));
+    await expect(page.locator('.sw-copy h1')).toHaveText(product);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(10);
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => scrollY)).toBeLessThan(10);
   }
-  await page.locator('.sw-route__dot').last().click();
+});
+
+test('home remembers its place after visiting other pages through header and footer links', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('[data-cinematic-story]')).toHaveAttribute('data-enhanced', 'true');
+  await page.locator('#home-content').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
+  const position = await page.evaluate(() => scrollY);
+  await navigate(page, '/about');
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(10);
+  await page.getByRole('link', { name: 'Wire & Wire home', exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(position, 0);
+  await navigate(page, '/contact');
+  await page.locator('footer nav[aria-label="Footer navigation"] a[href="/"]').click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(position, 0);
+});
+
+test('navigation clears wheel inertia but Back and Forward preserve their positions', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Desktop wheel inertia and history restoration');
+  await page.goto('/products/pc-bar');
+  await expect(page.locator('.sw-copy h1')).toHaveText('PC Bar');
+  await page.locator('footer').evaluate(el => el.scrollIntoView({ block: 'end', behavior: 'instant' }));
+  await page.mouse.move(1100, 450);
+  await page.mouse.wheel(0, -1200);
+  await expect(page.locator('html')).toHaveClass(/lenis-scrolling/);
+  await page.getByRole('link', { name: 'Wire & Wire home', exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(10);
+  await page.waitForTimeout(1400);
+  expect(await page.evaluate(() => scrollY)).toBeLessThan(10);
+
+  const product = page.getByRole('link', { name: 'Explore PC Wire', exact: true });
+  await product.scrollIntoViewIfNeeded();
+  // Capture at the click: revealing the card can move it during hit testing.
+  await page.evaluate(() => document.addEventListener('click', () => {
+    document.documentElement.dataset.leavingScrollY = String(scrollY);
+  }, { once: true, capture: true }));
+  await product.click();
+  const homePosition = Number(await page.locator('html').getAttribute('data-leaving-scroll-y'));
+  await expect(page.locator('.sw-copy h1')).toHaveText('PC Wire');
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(10);
+  await page.evaluate(() => window.scrollTo({ top: 500, behavior: 'instant' }));
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(homePosition, 0);
+  await page.goForward();
+  await expect(page).toHaveURL(/\/products\/pc-wire$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(500, 0);
+});
+
+test('product names and process copy remain accessible by scrolling without a route rail', async ({ page }, testInfo) => {
+  await page.goto('/products');
+  const spans = [1.45, 1.18, 1.18, 1.18, 1.18, 1.45];
+  const scrollToScene = async (index: number) => {
+    const position = spans.slice(0, index).reduce((sum, span) => sum + span, 0) + (index === 0 ? 0 : spans[index] / 2);
+    await page.locator('.sw-root').evaluate((root, position) => {
+      window.scrollTo({ top: root.getBoundingClientRect().top + scrollY + innerHeight * position, behavior: 'instant' });
+    }, position);
+  };
+  await expect(page.locator('.sw-route')).toHaveCount(0);
+  await expect(page.locator('.sw-hint')).toHaveCount(0);
+  await expect(page.locator('.sw-copy__eyebrow')).toHaveText(['PC Strand', 'PC Strand', 'PC Wire', 'PC Bar', 'Galvanized Strand & Wire', 'Unbonded Strand']);
+  await expect(page.locator('.sw-copy').nth(1)).toContainText('Prestressing is the process of tensioning PC strand');
+  await expect(page.locator('.sw-root')).not.toContainText('Product cinematic');
+  await page.screenshot({ path: testInfo.outputPath('products-clean.png') });
+  for (const index of [1, 2, 3, 4, 5, 0]) {
+    await scrollToScene(index);
+    await expect.poll(() => page.locator('.sw-copy').nth(index).evaluate(e => Number(getComputedStyle(e).opacity))).toBeGreaterThan(0.8);
+    if (index === 1) await page.screenshot({ path: testInfo.outputPath('pc-strand-process.png') });
+    const inactiveLinks = await page.locator('.sw-copy').evaluateAll(copies => copies
+      .filter(copy => Number(getComputedStyle(copy).opacity) <= 0.5)
+      .flatMap(copy => Array.from(copy.querySelectorAll('a')))
+      .filter(link => !link.closest('[inert]')));
+    expect(inactiveLinks).toHaveLength(0);
+  }
+  await scrollToScene(5);
   await page.getByRole('link', { name: 'View products', exact: true }).click();
   await expect.poll(() => page.locator('#product-archive').evaluate(e => Math.abs(e.getBoundingClientRect().top - 58))).toBeLessThan(5);
 });
@@ -111,7 +192,7 @@ test('mobile menu closes on Escape and desktop resize, restoring scroll', async 
   await page.getByRole('button', { name: 'Open menu' }).click();
   await page.setViewportSize({ width: 1200, height: 800 });
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
-  if (browserName === 'webkit') await page.locator('nav[aria-label="Story chapters"] button').nth(1).click();
+  if (browserName === 'webkit') await page.evaluate(() => window.scrollBy({ top: 450, behavior: 'instant' }));
   else await page.mouse.wheel(0, 450);
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
 });
@@ -133,7 +214,7 @@ test('compact and rotated screens keep film content clear of navigation', async 
   test.skip(isMobile, 'Viewport matrix runs once alongside the touch-browser tests');
   for (const viewport of [{ width: 320, height: 568 }, { width: 844, height: 390 }, { width: 768, height: 1024 }, { width: 1280, height: 720 }]) {
     await page.setViewportSize(viewport);
-    for (const path of ['/products/pc-strand']) {
+    for (const path of ['/products', '/products/pc-strand']) {
       await page.goto(path);
       await expect(page.locator('.sw-copy').first()).toHaveCSS('opacity', '1');
       await page.screenshot({ path: testInfo.outputPath(`${viewport.width}-${path.replaceAll('/', '-')}.png`) });
@@ -155,13 +236,26 @@ test('catalogue videos play when their section enters view', async ({ page }) =>
   await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.currentTime)).not.toBe(time);
 });
 
-test('reduced motion keeps story navigation and content accessible without video', async ({ page }) => {
+test('reduced motion keeps home and product content accessible by scrolling without video', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  await expect(page.locator('nav[aria-label="Story chapters"] button')).toHaveCount(4);
+  await expect(page.locator('nav[aria-label="Story chapters"]')).toHaveCount(0);
   await expect(page.locator('.sw-scene video')).toHaveCount(0);
-  await page.locator('nav[aria-label="Story chapters"] button').nth(2).click();
-  await expect(page.locator('nav[aria-label="Story chapters"] button').nth(2)).toHaveAttribute('aria-current', 'step');
+  await expect(page.locator('[data-cinematic-story]')).toHaveAttribute('data-enhanced', 'true');
+  await page.locator('[data-cinematic-story]').evaluate(track => {
+    const panel = track.firstElementChild as HTMLElement;
+    window.scrollTo({ top: track.getBoundingClientRect().top + scrollY + ((track as HTMLElement).offsetHeight - panel.offsetHeight) * 19.5 / 30, behavior: 'instant' });
+  });
+  await expect(page.locator('#story-build')).toHaveAttribute('data-active', 'true');
+  await expect(page.getByRole('link', { name: 'See the applications', exact: true })).toBeVisible();
   await navigate(page, '/products');
   await expect(page.locator('.sw-scene video')).toHaveCount(0);
+  await expect(page.locator('.sw-route')).toHaveCount(0);
+  await page.evaluate(() => window.scrollTo({ top: innerHeight * 2.04, behavior: 'instant' }));
+  await expect.poll(() => page.locator('.sw-copy').nth(1).evaluate(e => Number(getComputedStyle(e).opacity))).toBeGreaterThan(0.8);
+  await page.locator('footer a[href="/products/pc-bar"]').click();
+  await expect(page.locator('.sw-copy h1')).toHaveText('PC Bar');
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(10);
+  await page.getByRole('link', { name: 'Open the catalogue', exact: true }).click();
+  await expect.poll(() => page.locator('#product-data').evaluate(el => Math.abs(el.getBoundingClientRect().top - 58))).toBeLessThan(5);
 });

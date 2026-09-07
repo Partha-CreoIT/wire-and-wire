@@ -10,9 +10,9 @@
   background: #111315;
 }
 
-.world :global(.sw-route__label) {
-  color: #141414;
-  background: rgba(244, 238, 230, 0.9);
+/* Match the engine's track before hydration so anchors keep their position. */
+.world:not(:global(.sw-root)) {
+  height: var(--film-track-height);
 }
 
 .world :global(.sw-btn--primary) {
@@ -29,29 +29,6 @@
   --sw-bg: #101214;
 }
 
-.familyWorld :global(.sw-route) {
-  right: clamp(8px, 1.5vw, 20px);
-  gap: 10px;
-  padding: 12px 6px;
-}
-
-.familyWorld :global(.sw-route__dot) {
-  width: 18px;
-  height: 18px;
-}
-
-.familyWorld :global(.sw-route__dot i) {
-  width: 7px;
-  height: 7px;
-}
-
-.familyWorld :global(.sw-route__label) {
-  display: none;
-}
-
-/* Single-scene intro: a 01/01 counter and a one-dot route rail carry no
-   information — hide both. */
-.familyWorld :global(.sw-copy__num),
-.familyWorld :global(.sw-route) {
+.familyWorld :global(.sw-copy__num) {
   display: none;
 }

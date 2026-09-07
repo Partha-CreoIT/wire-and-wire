@@ -1050,6 +1050,7 @@ export const investorRelations = {
 export const productFilmPlan = [
   {
     id: 'pc-strand',
+    familySlug: 'pc-strand',
     label: 'PC Strand',
     title: 'Seven wires, one strand.',
     focalPoint: 'a seven-wire PC strand cross-section and coil',
@@ -1058,7 +1059,8 @@ export const productFilmPlan = [
   },
   {
     id: 'prestressing',
-    label: 'Prestressing',
+    familySlug: 'pc-strand',
+    label: 'PC Strand',
     title: 'Stress before the load.',
     focalPoint: 'the strand being stretched between abutments before concrete is poured',
     subject:
@@ -1066,6 +1068,7 @@ export const productFilmPlan = [
   },
   {
     id: 'pc-wire',
+    familySlug: 'pc-wire',
     label: 'PC Wire',
     title: 'Wire for repeatable precast.',
     focalPoint: 'a high-tensile wire spool feeding spun poles, square piles and railway sleepers',
@@ -1074,6 +1077,7 @@ export const productFilmPlan = [
   },
   {
     id: 'pc-bar',
+    familySlug: 'pc-bar',
     label: 'PC Bar',
     title: 'Grooved, quenched, tempered.',
     focalPoint: 'spiral-grooved PC bars entering spun pile reinforcement cages',
@@ -1082,7 +1086,8 @@ export const productFilmPlan = [
   },
   {
     id: 'galvanized',
-    label: 'Galvanized',
+    familySlug: 'galvanized-strand-wire',
+    label: 'Galvanized Strand & Wire',
     title: 'Zinc against the weather.',
     focalPoint: 'zinc-coated wire and strand used for fencing, cable and gabion systems',
     subject:
@@ -1090,7 +1095,8 @@ export const productFilmPlan = [
   },
   {
     id: 'unbonded-other',
-    label: 'Unbonded & Other',
+    familySlug: 'pc-strand',
+    label: 'Unbonded Strand',
     title: 'Protected for exposed spans.',
     focalPoint: 'HDPE-sheathed unbonded strand rising into a stay cable bridge',
     subject:

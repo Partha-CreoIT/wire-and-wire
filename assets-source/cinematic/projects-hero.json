@@ -1,0 +1,47 @@
+{
+  "page": "/projects",
+  "description": "AI-generated architectural visualisation inspired by listed project references, not documentary footage of a specific supplied project.",
+  "provider": "Kling MCP",
+  "model": "kling-video-v3_0_omni",
+  "generationId": "ATRNbpuh4kWWmOQVQSpnMlWCVqad1GK5jDohPTBHuiwsdalu_QAgS8zVoxvYK9Ka3TrkSpc9",
+  "taskTraceId": "01a07c07-bda7-77e0-84a7-c9046ea50778",
+  "generatedOn": "2026-09-07",
+  "creditsConsumed": 40,
+  "status": "completed",
+  "source": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "durationSeconds": 5.041667,
+    "sha256": "c965efb20c3cf3173ab2dac783cda78aa396fbf9ad1d73dc83497790247566f8"
+  },
+  "webAssets": {
+    "video": "public/generated/hero/projects-natural.mp4",
+    "poster": "public/generated/hero/projects-natural.webp",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "durationSeconds": 4.5,
+    "videoBytes": 3261729,
+    "posterBytes": 175320,
+    "encoding": "H.264, yuv420p, CRF 21, slow preset, faststart, no audio",
+    "loop": "Trim source to 5 seconds; dissolve its final 12 frames into its first 12 frames, finishing the fade on the last frame, then remove the initial 12 frames so playback wraps continuously.",
+    "ffmpegFilter": "[0:v]trim=duration=5,setpts=PTS-STARTPTS,split=2[body][head];[head]trim=duration=0.5,setpts=PTS-STARTPTS[intro];[body][intro]xfade=transition=fade:duration=0.458333:offset=4.5,trim=start=0.5,setpts=PTS-STARTPTS,format=yuv420p[video]",
+    "posterEncoding": "First web-video frame, WebP quality 88",
+    "videoSha256": "d3473ffd0ca83a87d4a79a27fd953dabbe380ac83dd390506b5de01d48ee1d06",
+    "posterSha256": "6229abeb7c38feb2ee3b3c59f2a3690cc6f2baa94e890e6161d5c5c8bcd821ed"
+  },
+  "projectReferences": [
+    "Kuala Lumpur - Putrajaya Elevated Highway",
+    "New Pantai Expressway"
+  ],
+  "parameters": {
+    "prompt": "Photorealistic live-action aerial cinematography of a completed elevated expressway in Kuala Lumpur, inspired by the Kuala Lumpur-Putrajaya Elevated Highway and New Pantai Expressway. Opening composition: a full-scale prestressed concrete viaduct curves gently from the lower centre into the middle distance, surrounded by tropical greenery and modern Malaysian residential towers, with the Kuala Lumpur skyline far beyond. The broad roadway, concrete piers, expansion joints, steel guardrails and lane markings have authentic proportions and subtle weathering. A stabilized drone makes one slow forward glide above and beside the road, revealing the depth of the city through natural parallax, then settles into a wide architectural composition. A few ordinary cars move steadily in their lanes with coherent left-hand traffic; all road geometry, buildings and vehicles remain rigid and consistent. Clear late-afternoon daylight, neutral grey concrete, natural green trees, blue sky, restrained warm sunlight, realistic glass reflections and gentle atmospheric depth. The road and principal buildings remain in the central part of the frame so they stay visible in a portrait crop. Detailed, natural photographic textures throughout. No miniature or clay appearance, no diorama, no CGI or illustration style, no transforming architecture, no disappearing vehicles, no camera cuts, no dramatic speed ramps, no text, no logos, no watermarks.",
+    "duration": "5",
+    "aspect_ratio": "16:9",
+    "resolution": "1080p",
+    "imageCount": "1",
+    "prefer_multi_shots": "false",
+    "enable_audio": "false"
+  }
+}

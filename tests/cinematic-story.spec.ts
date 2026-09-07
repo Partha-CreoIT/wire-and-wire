@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
 
 const story = '[data-cinematic-story]';
-const chapterButtons = 'nav[aria-label="Story chapters"] button';
+const chapterTimes = [0, 12, 19.5, 28];
 
-async function scrollFilm(page: Page, seconds: number) {
+async function scrollStory(page: Page, seconds: number) {
+  await expect(page.locator(story)).toHaveAttribute('data-enhanced', 'true');
   await expect(page.locator('html')).not.toHaveClass(/lenis-smooth/);
   await page.evaluate(time => {
     const track = document.querySelector<HTMLElement>('[data-cinematic-story]')!;
@@ -11,12 +12,28 @@ async function scrollFilm(page: Page, seconds: number) {
     const top = track.getBoundingClientRect().top + scrollY;
     window.scrollTo({ top: top + (track.offsetHeight - panel.offsetHeight) * time / 30, behavior: 'instant' });
   }, seconds);
+}
+
+async function scrollFilm(page: Page, seconds: number) {
+  await scrollStory(page, seconds);
   const video = page.locator(`${story} video`);
   // The decoder preloads up to two neighbouring frames for the visible canvas.
   await expect.poll(() => video.evaluate((v: HTMLVideoElement, time) => Math.abs(v.currentTime - (v.duration - 1 / 24) * time / 30), seconds)).toBeLessThan(0.13);
   await expect(video).toHaveJSProperty('seeking', false);
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
 }
+
+test('home hero keeps its main content without story labels or chapter controls', async ({ page }, testInfo) => {
+  await page.goto('/');
+  const hero = page.locator(story);
+  await expect(hero.locator('canvas')).toHaveAttribute('data-ready', 'true');
+  await expect(hero.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(hero.getByRole('link', { name: 'Discover our products', exact: true })).toBeVisible();
+  await expect(hero.getByRole('button')).toHaveCount(0);
+  await expect(hero.getByRole('navigation')).toHaveCount(0);
+  await expect(hero).not.toContainText(/From wire to world|A story of connection|Skip the story|Steel, at its beginning|Cinematic visualisation|Visualisation|travel through the story|01 \/ 04/i);
+  await page.screenshot({ path: testInfo.outputPath('home-clean.png') });
+});
 
 async function paintedFrame(page: Page) {
   return page.locator(`${story} canvas`).evaluate((surface: HTMLCanvasElement) => {
@@ -110,7 +127,7 @@ test.describe('desktop wheel input', () => {
         expect(await paintedFrame(page), `No delayed frame jump at ${time}s`).toBe(held);
       }
     }
-    await page.getByRole('link', { name: 'Skip the story', exact: true }).click();
+    await page.locator('#home-content').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
     await expect.poll(() => page.locator('#home-content').evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(100);
     await expect(page.locator('html')).not.toHaveClass(/lenis-smooth/);
     await page.mouse.move(1000, 400);
@@ -126,12 +143,11 @@ test.describe('desktop wheel input', () => {
   });
 });
 
-test('chapter links follow decoded frames and captions clear the connecting moves', async ({ page }) => {
+test('scrolling reveals chapter copy and clears it during connecting moves', async ({ page }) => {
   await page.goto('/');
-  const buttons = page.locator(chapterButtons);
   for (const index of [1, 2, 3, 0]) {
-    await buttons.nth(index).click();
-    await expect(buttons.nth(index)).toHaveAttribute('aria-current', 'step');
+    await scrollFilm(page, chapterTimes[index]);
+    await expect(page.locator('[id^="story-"]').nth(index)).toHaveAttribute('data-active', 'true');
     await expect(page.locator(`${story}[data-travelling]`)).toHaveCount(0);
     await expect(page.locator('[id^="story-"][data-active][aria-hidden="false"]')).toHaveCount(1);
     for (const item of await page.locator('[id^="story-"][aria-hidden="true"]').all()) {
@@ -142,8 +158,24 @@ test('chapter links follow decoded frames and captions clear the connecting move
   await expect(page.locator(story)).toHaveAttribute('data-travelling', 'true');
   await expect(page.locator('[id^="story-"][inert]')).toHaveCount(4);
   await scrollFilm(page, 19.5);
+  const homePosition = await page.evaluate(() => scrollY);
   await page.getByRole('link', { name: 'See the applications' }).click();
   await expect(page).toHaveURL(/\/products\/pc-strand#applications$/);
+  // Native anchors include both the header padding and section scroll margin.
+  const anchorOffset = () => page.locator('#applications').evaluate(el => Math.abs(
+    el.getBoundingClientRect().top - parseFloat(getComputedStyle(el).scrollMarginTop)
+      - parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop),
+  ));
+  await expect.poll(anchorOffset).toBeLessThan(5);
+  await page.getByRole('link', { name: 'Wire & Wire home', exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(homePosition, 0);
+  await expect(page.locator('#story-build')).toHaveAttribute('data-active', 'true');
+  await page.getByRole('link', { name: 'See the applications' }).click();
+  await expect(page).toHaveURL(/\/products\/pc-strand#applications$/);
+  await expect.poll(anchorOffset).toBeLessThan(5);
+  await page.reload();
+  await expect.poll(anchorOffset).toBeLessThan(5);
 });
 
 test('fast scroll input settles at the latest frame and navigation releases the decoder', async ({ page }) => {
@@ -169,7 +201,7 @@ test('fast scroll input settles at the latest frame and navigation releases the 
   await page.goBack();
   await expect(page.locator(`${story} video`)).toHaveCount(1);
   await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
-  await page.getByRole('link', { name: 'Skip the story', exact: true }).click();
+  await page.locator('#home-content').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
   await expect.poll(() => page.locator('#home-content').evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(100);
 });
 
@@ -192,7 +224,8 @@ test('all chapters retain their photographic posters when video fails', async ({
   await page.route('**/world/cinematic/**/*.mp4', route => route.abort());
   await page.goto('/');
   for (const index of [0, 1, 2, 3]) {
-    await page.locator(chapterButtons).nth(index).click();
+    await scrollStory(page, chapterTimes[index]);
+    await expect(page.locator('[id^="story-"]').nth(index)).toHaveAttribute('data-active', 'true');
     const poster = page.locator(`${story} figure[data-active] img`);
     await expect.poll(() => poster.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     await expect(poster).toBeVisible();
@@ -200,13 +233,13 @@ test('all chapters retain their photographic posters when video fails', async ({
   await expect(page.getByRole('link', { name: 'Explore our projects', exact: true })).toBeVisible();
 });
 
-test('reduced motion loads no film and preserves chapter navigation', async ({ page }) => {
+test('reduced motion loads no film and preserves scroll access to all chapters', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const mediaRequests: string[] = [];
   page.on('request', request => { if (request.url().includes('/cinematic/') && request.url().endsWith('.mp4')) mediaRequests.push(request.url()); });
   await page.goto('/');
   await expect(page.locator(`${story} video`)).toHaveCount(0);
-  await page.locator(chapterButtons).nth(3).click();
+  await scrollStory(page, chapterTimes[3]);
   await expect(page.locator('#story-skyline')).toHaveAttribute('data-active', 'true');
   expect(await page.locator('#story-skyline').evaluate(el => parseFloat(getComputedStyle(el).transitionDuration))).toBeLessThan(0.01);
   expect(mediaRequests).toEqual([]);
@@ -216,7 +249,7 @@ test('reduced motion loads no film and preserves chapter navigation', async ({ p
   await expect(page.locator(`${story} video`)).toHaveCount(0);
 });
 
-test('compact layouts retain readable titles and reachable chapter controls', async ({ page, isMobile }, testInfo) => {
+test('compact layouts retain readable titles and reachable product links', async ({ page, isMobile }, testInfo) => {
   test.skip(isMobile, 'Viewport matrix runs once');
   for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(viewport);
@@ -225,11 +258,21 @@ test('compact layouts retain readable titles and reachable chapter controls', as
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const title = await page.locator(`${story} h1`).boundingBox();
     expect(title!.y).toBeGreaterThan(65);
+    const firstLink = await page.locator('#story-mill a').boundingBox();
+    expect(firstLink!.y + firstLink!.height).toBeLessThanOrEqual(viewport.height - 12);
     for (const index of [1, 2, 3]) {
-      await page.locator(chapterButtons).nth(index).click();
-      await expect(page.locator(chapterButtons).nth(index)).toHaveAttribute('aria-current', 'step');
-      const buttons = await page.locator('nav[aria-label="Story chapters"]').boundingBox();
-      expect(buttons!.y + buttons!.height).toBeLessThanOrEqual(viewport.height);
+      await scrollFilm(page, chapterTimes[index]);
+      const copy = page.locator('[id^="story-"]').nth(index);
+      await expect(copy).toHaveAttribute('data-active', 'true');
+      await expect(copy).toHaveCSS('opacity', '1');
+      await expect(copy.locator('..')).toHaveCSS('opacity', '1');
+      const content = await copy.boundingBox();
+      const heading = await copy.getByRole('heading').boundingBox();
+      const link = await copy.getByRole('link').boundingBox();
+      expect(content!.y).toBeGreaterThan(65);
+      expect(heading!.y).toBeGreaterThan(65);
+      expect(link!.y + link!.height).toBeLessThanOrEqual(viewport.height - 12);
+      if (index === 2) await page.screenshot({ path: testInfo.outputPath(`making-clean-${viewport.width}.png`) });
     }
     await page.screenshot({ path: testInfo.outputPath(`cinematic-${viewport.width}.png`) });
   }

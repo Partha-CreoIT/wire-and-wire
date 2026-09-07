@@ -55,7 +55,7 @@ function slugify(value: string) {
 function productHrefForFilm(id: string) {
   if (id === 'prestressing') return '/products/pc-strand';
   if (id === 'galvanized') return '/products/galvanized-strand-wire';
-  if (id === 'unbonded-other') return '/products/other-wires';
+  if (id === 'unbonded-other') return '/products/pc-strand';
   return `/products/${id}`;
 }
 
@@ -723,8 +723,7 @@ function CsrSection() {
   );
 }
 
-/* Cinematic hero for the projects page — the skyline leg of the world film
-   ("inside structures you already know") looping behind the headline. */
+/* AI-generated expressway visualisation inspired by the project archive. */
 function ProjectsHero() {
   const totalHits = projects.reduce((sum, project) => sum + project.legacyHits, 0);
   const regions = Array.from(new Set(projects.map((project) => project.location.split(',').pop()!.trim())));
@@ -733,8 +732,8 @@ function ProjectsHero() {
     <section className={`section--dark ${styles.projectsHero}`} data-theme="dark">
       <video
         className={styles.projectsHeroVideo}
-        src="/generated/hero/projects-hero.mp4"
-        poster="/world/skyline.webp"
+        src="/generated/hero/projects-natural.mp4"
+        poster="/generated/hero/projects-natural.webp"
         autoPlay
         muted
         loop
