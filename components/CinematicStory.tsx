@@ -143,8 +143,8 @@ export function CinematicStory() {
   }, [showProgress]);
 
   return (
-    <section ref={root} className={styles.story} data-cinematic-story data-travelling={ready && travelling || undefined} data-film-tone="dark" data-enhanced={enhanced || undefined} aria-label="Wire & Wire">
-      <div ref={stage} className={styles.stage}>
+    <section ref={root} className={styles.story} data-cinematic-story data-cinematic-duration="30" data-travelling={ready && travelling || undefined} data-film-tone="dark" data-enhanced={enhanced || undefined} aria-label="Wire & Wire">
+      <div ref={stage} className={styles.stage} data-cinematic-stage>
         <div className={styles.frames}>
           {chapters.map((item, index) => <figure key={item.id} className={styles.shot} data-active={index === chapter || undefined} data-scene={item.id} aria-hidden={index !== chapter}>
             <picture>

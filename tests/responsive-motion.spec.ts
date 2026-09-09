@@ -46,6 +46,25 @@ test('product films paint different frames as the user scrolls', async ({ page }
   }
 });
 
+test('product films cap fast gestures and return to ordinary scrolling after the intro', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Wheel input runs on desktop');
+  for (const path of ['/products', '/products/pc-strand']) {
+    await page.goto(path);
+    await expect(page.locator('.sw-root')).toHaveAttribute('data-cinematic-duration');
+    await page.mouse.move(1000, 400);
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => page.evaluate(() => scrollY), { timeout: 500 }).toBe(120);
+    await page.mouse.wheel(0, 100_000);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(200);
+    await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
+    expect(await page.evaluate(() => scrollY)).toBeLessThan(620);
+    await page.locator('.sw-track').evaluate(track => window.scrollTo({ top: track.getBoundingClientRect().bottom + scrollY, behavior: 'instant' }));
+    const position = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, 1000);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(position + 500);
+  }
+});
+
 test('product navigation replaces the film and returns to its beginning', async ({ page }) => {
   await page.goto('/products/pc-strand');
   await expect(page.locator('.sw-copy h1')).toHaveText('PC Strand');
@@ -60,18 +79,13 @@ test('product navigation replaces the film and returns to its beginning', async 
 
 test('opening products through home never carries the previous footer position', async ({ page }) => {
   await page.goto('/products/pc-bar');
-  let homePosition = 0;
   for (const product of ['PC Wire', 'PC Bar', 'PC Strand', 'Galvanized Strand & Wire', 'Other Wires']) {
     await page.locator('footer').evaluate(el => el.scrollIntoView({ block: 'end', behavior: 'instant' }));
     await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(1000);
     await page.getByRole('link', { name: 'Wire & Wire home', exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
-    await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(homePosition, 0);
-    await page.evaluate(() => document.addEventListener('click', () => {
-      document.documentElement.dataset.leavingScrollY = String(scrollY);
-    }, { once: true, capture: true }));
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(1);
     await page.getByRole('link', { name: `Explore ${product}`, exact: true }).click();
-    homePosition = Number(await page.locator('html').getAttribute('data-leaving-scroll-y'));
     await expect(page.locator('.sw-copy h1')).toHaveText(product);
     await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(10);
     await page.waitForTimeout(500);
@@ -79,7 +93,7 @@ test('opening products through home never carries the previous footer position',
   }
 });
 
-test('home remembers its place after visiting other pages through header and footer links', async ({ page }) => {
+test('the logo restarts home while other home links remember the saved position', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('[data-cinematic-story]')).toHaveAttribute('data-enhanced', 'true');
   await page.locator('#home-content').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
@@ -88,11 +102,30 @@ test('home remembers its place after visiting other pages through header and foo
   await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(10);
   await page.getByRole('link', { name: 'Wire & Wire home', exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(position, 0);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(1);
+  await expect(page.locator('#story-mill')).toHaveAttribute('data-active', 'true');
+  await page.locator('#home-content').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
   await navigate(page, '/contact');
   await page.locator('footer nav[aria-label="Footer navigation"] a[href="/"]').click();
   await expect(page).toHaveURL(/\/$/);
   await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(position, 0);
+});
+
+test('the home logo resets the first scene from the film, footer and open mobile menu', async ({ page, isMobile }) => {
+  await page.goto('/');
+  await expect(page.locator('[data-cinematic-story] canvas')).toHaveAttribute('data-ready', 'true');
+  for (const top of [3000, 8000]) {
+    await page.evaluate(top => window.scrollTo({ top, behavior: 'instant' }), top);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(1000);
+    if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
+    else await page.mouse.wheel(0, 100_000);
+    await page.getByRole('link', { name: 'Wire & Wire home', exact: true }).click();
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+    await expect(page.locator('#story-mill')).toHaveAttribute('data-active', 'true');
+    await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
+    await page.waitForTimeout(800);
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+  }
 });
 
 test('navigation clears wheel inertia but Back and Forward preserve their positions', async ({ page, isMobile }) => {
@@ -194,7 +227,7 @@ test('mobile menu closes on Escape and desktop resize, restoring scroll', async 
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
   if (browserName === 'webkit') await page.evaluate(() => window.scrollBy({ top: 450, behavior: 'instant' }));
   else await page.mouse.wheel(0, 450);
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(1);
 });
 
 test('leaving a film releases its video sources', async ({ page }) => {

@@ -72,8 +72,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${archivo.variable} ${archivoNarrow.variable}`}>
       <body>
-        <SiteHeader />
-        <MotionProvider>{children}</MotionProvider>
+        <MotionProvider>
+          <SiteHeader />
+          {children}
+        </MotionProvider>
       </body>
     </html>
   );

@@ -1,7 +1,10 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef } from 'react';
-import { getLenis, initSmoothScroll } from '@/lib/motion';
+import { createContext, useCallback, useContext, useEffect, useRef } from 'react';
+import { getLenis, initSmoothScroll, resetScroll } from '@/lib/motion';
+
+const HomeStartContext = createContext(() => {});
+export const useHomeStart = () => useContext(HomeStartContext);
 
 /** Mounts Lenis + ScrollTrigger exactly once for the whole app. */
 export function MotionProvider({ children }: { children: React.ReactNode }) {
@@ -9,6 +12,10 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
   const previousPath = useRef(pathname);
   const historyDestination = useRef<string | null>(null);
   const homePosition = useRef(0);
+  const restartHome = useCallback(() => {
+    homePosition.current = 0;
+    if (window.location.pathname === '/') resetScroll();
+  }, []);
 
   useEffect(() => initSmoothScroll(), []);
 
@@ -40,8 +47,7 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
 
     const top = pathname === '/' ? homePosition.current : 0;
     const restore = () => {
-      window.scrollTo({ top, left: 0, behavior: 'instant' });
-      lenis?.resize();
+      resetScroll(top);
     };
     if (pathname === '/') {
       // Home expands its track in a layout effect. Wait for that state commit
@@ -66,5 +72,5 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     };
   }, [pathname]);
 
-  return <>{children}</>;
+  return <HomeStartContext.Provider value={restartHome}>{children}</HomeStartContext.Provider>;
 }

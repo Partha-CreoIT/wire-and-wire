@@ -99,6 +99,70 @@ test.describe('desktop wheel input', () => {
     }
   });
 
+  test('ordinary wheel gestures retain their full distance without a settling delay', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
+    await scrollFilm(page, 3);
+    await page.mouse.move(1000, 400);
+    for (const delta of [120, 90, -120]) {
+      const before = await page.evaluate(() => scrollY);
+      await page.evaluate(() => window.addEventListener('wheel', event => {
+        // Chrome scales injected wheel coordinates on high-DPI device profiles.
+        document.documentElement.dataset.normalWheelDelta = String(event.deltaY);
+      }, { once: true, passive: true }));
+      await page.mouse.wheel(0, delta);
+      await expect.poll(() => page.locator('html').getAttribute('data-normal-wheel-delta'), { timeout: 500 }).not.toBeNull();
+      const input = Number(await page.locator('html').getAttribute('data-normal-wheel-delta'));
+      await expect.poll(() => page.evaluate(() => scrollY), { timeout: 500 }).toBeCloseTo(before + input, 0);
+      await page.locator('html').evaluate(el => { delete el.dataset.normalWheelDelta; });
+      const position = await page.evaluate(() => scrollY);
+      await page.waitForTimeout(120);
+      expect(await page.evaluate(() => scrollY)).toBe(position);
+    }
+  });
+
+  test('huge and high-frequency wheel input is limited without slowing ordinary gestures', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
+    await scrollFilm(page, 7.5);
+    await page.mouse.move(1000, 30);
+    const before = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, 100_000);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before);
+    await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
+    const after = await page.evaluate(() => scrollY);
+    expect(after - before).toBeGreaterThan(200);
+    expect(after - before).toBeLessThan(350);
+
+    const burst = await page.evaluate(async () => {
+      const track = document.querySelector<HTMLElement>('[data-cinematic-story]')!;
+      const distance = track.offsetHeight - (track.firstElementChild as HTMLElement).offsetHeight;
+      const start = performance.now();
+      const initial = scrollY;
+      const samples: { time: number; position: number }[] = [];
+      while (performance.now() - start < 2000) {
+        // Many events in a frame must not accumulate a multi-scene destination.
+        for (let i = 0; i < 20; i++) window.dispatchEvent(new WheelEvent('wheel', { deltaY: 100_000, cancelable: true }));
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        samples.push({ time: performance.now() - start, position: scrollY });
+      }
+      return { distance, initial, samples };
+    });
+    for (const sample of burst.samples) {
+      const filmSeconds = (sample.position - burst.initial) / burst.distance * 30;
+      // A short initial burst is allowed, then only five film seconds per second.
+      expect(filmSeconds).toBeLessThanOrEqual(5 * (sample.time / 1000 + 0.3) + 0.1);
+    }
+    expect(burst.samples.at(-1)!.position - burst.initial).toBeGreaterThan(1200);
+    const reversingAt = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, -100_000);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(reversingAt);
+    await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
+    const stoppedAt = await page.evaluate(() => scrollY);
+    await page.waitForTimeout(400);
+    expect(await page.evaluate(() => scrollY)).toBe(stoppedAt);
+  });
+
   test('successive wheel gestures settle within every chapter and across all chapter boundaries', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
@@ -117,13 +181,13 @@ test.describe('desktop wheel input', () => {
           await page.mouse.wheel(0, delta * direction);
           await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
         }
-        await expect(page.locator('html')).toHaveAttribute('data-wheel-prevented', 'false');
-        await page.waitForTimeout(160);
+        await expect(page.locator('html')).toHaveAttribute('data-wheel-prevented', 'true');
+        await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
         const stoppedAt = await page.evaluate(() => scrollY);
         const held = await paintedFrame(page);
         expect(held, `Film moves at ${time}s, direction ${direction}`).not.toBe(before);
         await page.waitForTimeout(200);
-        expect(await page.evaluate(() => scrollY), `No extra wheel inertia at ${time}s`).toBe(stoppedAt);
+        expect(await page.evaluate(() => scrollY), `No movement after the gesture settles at ${time}s`).toBe(stoppedAt);
         expect(await paintedFrame(page), `No delayed frame jump at ${time}s`).toBe(held);
       }
     }
@@ -143,6 +207,39 @@ test.describe('desktop wheel input', () => {
   });
 });
 
+test('fast touch swipes are capped and settle without native momentum', async ({ page, isMobile, browserName }) => {
+  test.skip(!isMobile || browserName !== 'chromium', 'Real touch input through Chromium mobile emulation');
+  await page.goto('/');
+  await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
+  const touch = await page.context().newCDPSession(page);
+  const before = await page.evaluate(() => scrollY);
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 320, y: 700 }] });
+  for (const y of [600, 400, 200, 100]) {
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 320, y }] });
+  }
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
+  const after = await page.evaluate(() => scrollY);
+  expect(after - before).toBeGreaterThan(150);
+  expect(after - before).toBeLessThan(500);
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => scrollY)).toBe(after);
+  await expect(page.locator('#story-mill')).toHaveAttribute('data-active', 'true');
+  await touch.detach();
+});
+
+test('scrolling keys are paced while deliberate navigation can leave the film', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
+  await page.keyboard.press('PageDown');
+  await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
+  expect(await page.evaluate(() => scrollY)).toBeGreaterThan(150);
+  expect(await page.evaluate(() => scrollY)).toBeLessThan(400);
+  // End remains an explicit way to reach content immediately.
+  await page.keyboard.press('End');
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(5000);
+});
+
 test('scrolling reveals chapter copy and clears it during connecting moves', async ({ page }) => {
   await page.goto('/');
   for (const index of [1, 2, 3, 0]) {
@@ -158,7 +255,6 @@ test('scrolling reveals chapter copy and clears it during connecting moves', asy
   await expect(page.locator(story)).toHaveAttribute('data-travelling', 'true');
   await expect(page.locator('[id^="story-"][inert]')).toHaveCount(4);
   await scrollFilm(page, 19.5);
-  const homePosition = await page.evaluate(() => scrollY);
   await page.getByRole('link', { name: 'See the applications' }).click();
   await expect(page).toHaveURL(/\/products\/pc-strand#applications$/);
   // Native anchors include both the header padding and section scroll margin.
@@ -169,8 +265,9 @@ test('scrolling reveals chapter copy and clears it during connecting moves', asy
   await expect.poll(anchorOffset).toBeLessThan(5);
   await page.getByRole('link', { name: 'Wire & Wire home', exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(homePosition, 0);
-  await expect(page.locator('#story-build')).toHaveAttribute('data-active', 'true');
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+  await expect(page.locator('#story-mill')).toHaveAttribute('data-active', 'true');
+  await scrollFilm(page, 19.5);
   await page.getByRole('link', { name: 'See the applications' }).click();
   await expect(page).toHaveURL(/\/products\/pc-strand#applications$/);
   await expect.poll(anchorOffset).toBeLessThan(5);

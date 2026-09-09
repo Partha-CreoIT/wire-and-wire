@@ -7,6 +7,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import Lenis from 'lenis';
+import { createCinematicScroll } from './cinematic-scroll';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, SplitText);
@@ -44,33 +45,27 @@ export const getLenis = () => lenisInstance;
 
 export function initSmoothScroll(): Cleanup {
   if (typeof window === 'undefined') return noop;
-  // No smooth scroll in reduced-motion or QA mode. Do NOT kill triggers here:
+  // QA mode uses native scrolling; Lenis handles live reduced-motion changes.
+  // Do NOT kill triggers here:
   // components own the triggers they create, and React StrictMode double-invokes
   // effects, so a provider that nukes getAll() destroys its children's work.
-  if (reduced() || isQaMode()) {
+  if (isQaMode()) {
     ScrollTrigger.refresh();
     return noop;
   }
 
+  const cinematic = createCinematicScroll(() => lenis);
   const lenis: Lenis = new Lenis({
     duration: 1.1,
     easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
     syncTouch: false,
     anchors: true,
-    virtualScroll: ({ event }) => {
-      if (event.type === 'wheel') {
-        // Fine wheel devices already supply momentum. Adding another easing
-        // tail makes consecutive gestures hesitate throughout the film.
-        const story = document.querySelector<HTMLElement>('[data-cinematic-story]');
-        const bounds = story?.getBoundingClientRect();
-        lenis.options.smoothWheel = !bounds || bounds.bottom <= 0 || bounds.top >= window.innerHeight;
-      }
-      return true;
-    },
+    virtualScroll: cinematic.virtualScroll,
   });
   lenisInstance = lenis;
   lenis.on('scroll', ScrollTrigger.update);
+  window.addEventListener('keydown', cinematic.onKeyDown);
 
   const tick = (time: number) => lenis.raf(time * 1000);
   gsap.ticker.add(tick);
@@ -83,10 +78,22 @@ export function initSmoothScroll(): Cleanup {
 
   return () => {
     gsap.ticker.remove(tick);
+    window.removeEventListener('keydown', cinematic.onKeyDown);
     lenis.destroy();
     lenisInstance = null;
     // Deliberately not killing triggers — each component disposes its own.
   };
+}
+
+/** Cancel pending gestures as well as moving the native scroll position. */
+export function resetScroll(top = 0): void {
+  const lenis = getLenis();
+  if (!lenis) { window.scrollTo({ top, left: 0, behavior: 'instant' }); return; }
+  const wasStopped = lenis.isStopped;
+  lenis.stop();
+  lenis.resize();
+  lenis.scrollTo(top, { immediate: true, force: true });
+  if (!wasStopped) lenis.start();
 }
 
 export function scrollTo(target: string | number, offset = 0): void {

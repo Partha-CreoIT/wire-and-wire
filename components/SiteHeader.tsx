@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { getLenis } from '@/lib/motion';
+import { useHomeStart } from '@/app/providers';
 import styles from './SiteHeader.module.css';
 
 const navItems = [
@@ -23,6 +24,7 @@ const SOLID_AT = 72;
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const restartHome = useHomeStart();
   const [solid, setSolid] = useState(false);
   const [tone, setTone] = useState<'light' | 'dark'>('light');
   const [open, setOpen] = useState(false);
@@ -125,7 +127,11 @@ export function SiteHeader() {
       data-open={open || undefined}
     >
       <div className={styles.inner}>
-        <Link href="/" className={styles.brand} aria-label="Wire & Wire home" onClick={() => setOpen(false)}>
+        <Link href="/" className={styles.brand} aria-label="Wire & Wire home" onNavigate={(event) => {
+          setOpen(false);
+          restartHome();
+          if (pathname === '/' && !window.location.search && !window.location.hash) event.preventDefault();
+        }}>
           <img
             src="/world/logo.png"
             alt="Wire & Wire Products (M) Sdn Bhd"
