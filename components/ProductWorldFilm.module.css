@@ -16,6 +16,9 @@
 }
 
 @media (max-width: 760px) {
+  :global(html[data-cinematic-touch]) .world:global(.sw-root) {
+    touch-action: pan-x pinch-zoom;
+  }
   .world:not(:global(.sw-root)) {
     height: var(--film-mobile-track-height);
   }

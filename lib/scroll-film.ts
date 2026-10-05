@@ -168,6 +168,7 @@ export function mountScrollFilm(video: HTMLVideoElement, canvas: HTMLCanvasEleme
   }
 
   return {
+    fallback: reportError,
     setProgress(value: number) {
       const next = clamp(value);
       if (next !== progress) direction = next > progress ? 1 : -1;

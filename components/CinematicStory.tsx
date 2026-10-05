@@ -48,6 +48,7 @@ export function CinematicStory() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const film = useRef<ScrollFilm | null>(null);
   const progressRef = useRef(0);
+  const displayedProgress = useRef(0);
   const current = useRef(0);
   const mediaReady = useRef(false);
   const [chapter, setChapter] = useState(0);
@@ -61,6 +62,8 @@ export function CinematicStory() {
   // Times correspond to the continuous master: mill → zoom → strand → pullback
   // → construction → aerial ascent → Kuala Lumpur. Copy follows decoded frames.
   const showProgress = useCallback((progress: number) => {
+    displayedProgress.current = progress;
+    if (root.current) root.current.dataset.cinematicSettled = String(Math.abs(progress - progressRef.current) < 0.004);
     const time = progress * 30;
     const next = time < 8 ? 0 : time < 16 ? 1 : time < 23 ? 2 : 3;
     if (current.current !== next) { current.current = next; setChapter(next); }
@@ -104,10 +107,14 @@ export function CinematicStory() {
       onError: () => { mediaReady.current = false; setReady(false); showProgress(progressRef.current); },
     });
     film.current = controller;
+    const fallback = () => controller.fallback();
+    const track = root.current;
+    track?.addEventListener('cinematic-fallback', fallback);
     const observer = new IntersectionObserver(([entry]) => controller.setActive(entry.isIntersecting));
     if (stage.current) observer.observe(stage.current);
     return () => {
       observer.disconnect();
+      track?.removeEventListener('cinematic-fallback', fallback);
       controller.dispose();
       film.current = null;
       mediaReady.current = false;
@@ -127,6 +134,7 @@ export function CinematicStory() {
       progressRef.current = progress;
       film.current?.setProgress(progress);
       if (!mediaReady.current) showProgress(progress);
+      else track.dataset.cinematicSettled = String(Math.abs(displayedProgress.current - progress) < 0.004);
     }
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
     const resize = new ResizeObserver(schedule);

@@ -7,7 +7,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import Lenis from 'lenis';
-import { createCinematicScroll } from './cinematic-scroll';
+import { createCinematicScroll, MOBILE_CINEMATIC_QUERY } from './cinematic-scroll';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, SplitText);
@@ -54,15 +54,25 @@ export function initSmoothScroll(): Cleanup {
     return noop;
   }
 
+  const compact = window.matchMedia(MOBILE_CINEMATIC_QUERY);
   const cinematic = createCinematicScroll(() => lenis);
   const lenis: Lenis = new Lenis({
     duration: 1.1,
     easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
-    syncTouch: false,
+    // Own the whole phone swipe, including entering/leaving a cinematic track.
+    // Switching from native scrolling halfway through a Safari swipe is too late.
+    syncTouch: compact.matches,
     anchors: true,
     virtualScroll: cinematic.virtualScroll,
   });
+  const updateTouch = () => {
+    lenis.options.syncTouch = compact.matches;
+    if (compact.matches) document.documentElement.dataset.cinematicTouch = 'true';
+    else delete document.documentElement.dataset.cinematicTouch;
+  };
+  updateTouch();
+  compact.addEventListener('change', updateTouch);
   lenisInstance = lenis;
   lenis.on('scroll', ScrollTrigger.update);
   window.addEventListener('keydown', cinematic.onKeyDown);
@@ -80,6 +90,8 @@ export function initSmoothScroll(): Cleanup {
     gsap.ticker.remove(tick);
     window.removeEventListener('keydown', cinematic.onKeyDown);
     cinematic.dispose();
+    compact.removeEventListener('change', updateTouch);
+    delete document.documentElement.dataset.cinematicTouch;
     lenis.destroy();
     lenisInstance = null;
     // Deliberately not killing triggers — each component disposes its own.

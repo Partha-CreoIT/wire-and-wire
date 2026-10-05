@@ -233,11 +233,75 @@ test('mobile touch swipes advance a chapter and settle without native momentum',
   await touch.detach();
 });
 
+// Exercise the same Lenis touch stream in WebKit, whose automation API has no swipe command.
+async function mobileSwipe(page: Page, cancel = false) {
+  await page.evaluate(cancel => {
+    const target = document.querySelector('[data-cinematic-story]')!;
+    function send(type: string, x: number, y: number) {
+      // Safari can mark later touchmove samples non-cancelable.
+      const event = new Event(type, { bubbles: true, cancelable: type !== 'touchmove' || y !== 440 });
+      const points = type === 'touchend' || type === 'touchcancel' ? [] : [{ clientX: x, clientY: y }];
+      Object.defineProperties(event, {
+        touches: { value: points }, targetTouches: { value: points },
+      });
+      target.dispatchEvent(event);
+    }
+    send('touchstart', 250, 500);
+    // Include an initial sideways sample: it must not give the story to native scrolling.
+    send('touchmove', 260, 499);
+    send('touchmove', 260, 440);
+    send(cancel ? 'touchcancel' : 'touchend', 260, 440);
+  }, cancel);
+}
+
+test('mobile rapid and cancelled swipes preserve intermediate scenes', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'Phone scene stepping');
+  await page.goto('/');
+  await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
+  const stops = await page.locator(story).evaluate(track => {
+    const distance = (track as HTMLElement).offsetHeight - (track.firstElementChild as HTMLElement).offsetHeight;
+    return { strand: distance * 0.4, build: distance * 0.65 };
+  });
+  await mobileSwipe(page, true);
+  await mobileSwipe(page);
+  await mobileSwipe(page);
+  await mobileSwipe(page);
+  // Fast input cannot retarget the current transition past the first reading stop.
+  expect(await page.evaluate(() => scrollY)).toBeLessThanOrEqual(stops.strand + 1);
+  await expect(page.locator('#story-strand')).toHaveAttribute('aria-hidden', 'false');
+  await expect(page.locator('#story-build')).toHaveAttribute('aria-hidden', 'false', { timeout: 10_000 });
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(stops.build, 0);
+  await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => scrollY)).toBeCloseTo(stops.build, 0);
+});
+
+test('mobile waits for the final scene and recovers when the decoder stalls', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'Phone final-scene completion');
+  await page.goto('/');
+  await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
+  await scrollFilm(page, 19.5);
+  const end = await page.locator(story).evaluate(track =>
+    (track as HTMLElement).offsetHeight - (track.firstElementChild as HTMLElement).offsetHeight);
+  await page.locator(`${story} video`).evaluate((video: HTMLVideoElement) => {
+    video.requestVideoFrameCallback = () => 0;
+  });
+  await mobileSwipe(page);
+  await mobileSwipe(page);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(end, 0);
+  // The queued exit stays inside the story while the decoded frame is behind.
+  await expect(page.locator(story)).toHaveAttribute('data-cinematic-settled', 'false');
+  expect(await page.evaluate(() => scrollY)).toBeLessThanOrEqual(end + 1);
+  await expect(page.locator(`${story} canvas`)).not.toHaveAttribute('data-ready', 'true', { timeout: 10_000 });
+  await expect(page.locator('#story-skyline')).toHaveAttribute('aria-hidden', 'false');
+  await expect.poll(() => page.evaluate(() => scrollY), { timeout: 10_000 }).toBeGreaterThan(end + 10);
+});
+
 test('scrolling keys are paced while deliberate navigation can leave the film', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
   await page.keyboard.press('PageDown');
-  await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
+  await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/, { timeout: 10_000 });
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(150);
   const limit = await page.evaluate(() => innerWidth <= 760 ? innerHeight : 400);
   expect(await page.evaluate(() => scrollY)).toBeLessThan(limit);
