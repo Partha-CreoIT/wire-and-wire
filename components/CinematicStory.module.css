@@ -68,7 +68,7 @@
 @media (max-height: 649px) and (max-width: 760px) {
   .story[data-enhanced] { --mobile-stage-height: 100dvh; }
   .stage { min-height: 0; }
-  .copyStack { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .copyStack { bottom: calc(52px + env(safe-area-inset-bottom)); }
   .body { margin-top: 14px; }
   .actions { margin-top: 16px; }
 }

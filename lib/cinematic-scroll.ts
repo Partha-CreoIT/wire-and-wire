@@ -7,36 +7,20 @@ export const MOBILE_CINEMATIC_QUERY = '(max-width: 760px)';
 // A deliberate phone swipe should cover a scene without several repeat gestures.
 export const MOBILE_SCENE_SCROLL = 0.55;
 
-/** Mobile tap alternative uses the same scene boundaries as a swipe. */
-export function advanceCinematicScene(track: HTMLElement) {
-  track.dispatchEvent(new Event('cinematic-advance', { bubbles: true }));
-}
-
 // Leave ordinary wheel steps and finger movement at 1:1. Only trim bursts that
 // would race through the film; fast scrolling can traverse it about 5x playback.
 const MAX_PLAYBACK_RATE = 5;
 const BURST_SECONDS = 0.3;
-const MOBILE_SWIPE_THRESHOLD = 18;
-const MOBILE_TRANSITION_SECONDS = 0.65;
-// Let the copy's fade finish before a queued swipe advances again.
-const MOBILE_READING_HOLD = 220;
+const MOBILE_TOUCH_GAIN = 1.4;
+const MOBILE_SNAP_DELAY = 120;
 const MOBILE_DECODE_TIMEOUT = 2000;
 
 type MobileGesture = {
   track: HTMLElement;
-  delta: number;
-  committed: boolean;
-  input: 'touch' | 'wheel' | 'key';
-};
-
-type MobileStep = { direction: number; delta: number };
-type MobileTransition = {
-  track: HTMLElement;
-  index: number;
+  direction: number;
   target: number;
-  startedAt: number;
-  reachedAt: number | null;
-  queued: MobileStep | null;
+  boundary: number;
+  input: 'touch' | 'wheel' | 'key';
 };
 
 /** Limit the scroll position itself, so the film and its copy stay together. */
@@ -50,9 +34,9 @@ export function createCinematicScroll(getLenis: () => Lenis) {
   let lastInput = 0;
   let lastPosition = 0;
   let mobileGesture: MobileGesture | null = null;
-  let mobileTransition: MobileTransition | null = null;
-  let transitionFrame = 0;
   let wheelTimeout: number | undefined;
+  let snapTimeout: number | undefined;
+  let decodeFrame = 0;
 
   function clearMobileGesture() {
     window.clearTimeout(wheelTimeout);
@@ -61,10 +45,11 @@ export function createCinematicScroll(getLenis: () => Lenis) {
   }
 
   function moveMobile(target: number) {
-    // One bounded tween per scene. Touch events never restart its easing.
+    // Follow each finger sample with a short catch-up, rather than launching a
+    // whole scene after a threshold. A new sample or reversal can retarget it.
     getLenis().scrollTo(target, {
-      duration: MOBILE_TRANSITION_SECONDS,
-      easing: value => 1 - Math.pow(1 - value, 3),
+      duration: 0,
+      lerp: 0.35,
       programmatic: false,
       immediate: motion.matches,
       userData: { cinematic: true },
@@ -83,94 +68,49 @@ export function createCinematicScroll(getLenis: () => Lenis) {
     return { start, end, distance, stops };
   }
 
-  function clearMobileTransition() {
-    cancelAnimationFrame(transitionFrame);
-    transitionFrame = 0;
-    if (mobileTransition) delete mobileTransition.track.dataset.cinematicMoving;
-    mobileTransition = null;
-  }
-
-  function requestMobileStep(track: HTMLElement, step: MobileStep) {
-    if (mobileTransition?.track === track) {
-      // Remember one follow-up gesture without building a backlog that skips copy.
-      mobileTransition.queued = step;
-      return;
-    }
-    const lenis = getLenis();
-    const { start, end, stops } = geometry(track);
-    const position = lenis.animatedScroll;
-    const nearest = stops.reduce((nearest, stop, i) =>
-      Math.abs(stop - position) < Math.abs(stops[nearest] - position) ? i : nearest, 0);
-    const entering = position < start - 1 && step.direction > 0 || position > end + 1 && step.direction < 0;
-    let index = entering ? position < start ? 0 : stops.length - 1 : nearest + step.direction;
-    if (!entering && Math.abs(position - stops[nearest]) >= 1) {
-      // A restored position between stops finishes the current scene first.
-      index = step.direction > 0 ? stops.length : -1;
-      for (let i = 0; i < stops.length; i++) {
-        if (step.direction > 0 && stops[i] > position + 1) { index = i; break; }
-        if (step.direction < 0 && stops[i] < position - 1) index = i;
-      }
-    }
-    let queued: MobileStep | null = null;
-    if ((index < 0 || index >= stops.length) && track.dataset.cinematicSettled === 'false') {
-      // History restoration can put the page at an endpoint before its film decodes.
-      index = nearest;
-      queued = step;
-    }
-    if (index < 0 || index >= stops.length) {
-      // A queued exit runs only after the final frame and copy have been shown.
-      const movement = Math.min(window.innerHeight * 0.85, Math.max(60, Math.abs(step.delta)));
-      moveMobile(position + step.direction * movement);
-      return;
-    }
-    mobileTransition = {
-      track, index, target: stops[index], startedAt: performance.now(), reachedAt: null, queued,
-    };
-    track.dataset.cinematicMoving = 'true';
-    moveMobile(stops[index]);
-    transitionFrame = requestAnimationFrame(finishMobileTransition);
-  }
-
-  function finishMobileTransition(now: number) {
-    transitionFrame = 0;
-    const transition = mobileTransition;
-    if (!transition) return;
-    const lenis = getLenis();
-    const { track } = transition;
-    const { stops } = geometry(track);
-    const position = lenis.animatedScroll;
-    if (!compact.matches || !track.isConnected || lenis.isStopped || lenis.isLocked ||
-      Math.abs(position - transition.target) > 2 && lenis.userData.cinematic !== true) {
-      clearMobileTransition();
-      return;
-    }
-    // Recompute the destination if rotation changes the track during a gesture.
-    const target = stops[Math.min(transition.index, stops.length - 1)];
-    if (Math.abs(target - transition.target) > 1) {
-      transition.target = target;
-      transition.reachedAt = null;
-      moveMobile(target);
-    }
-    const arrived = Math.abs(position - transition.target) < 1;
-    if (arrived && track.dataset.cinematicSettled === 'false' &&
-      now - transition.startedAt > MOBILE_DECODE_TIMEOUT) {
-      // A slow/blocked iPhone decoder must not trap the page: show the scene still.
-      track.dispatchEvent(new Event('cinematic-fallback'));
-    }
-    if (arrived && track.dataset.cinematicSettled !== 'false') {
-      transition.reachedAt ??= now;
-      if (now - transition.reachedAt >= (motion.matches ? 0 : MOBILE_READING_HOLD)) {
-        const queued = transition.queued;
-        clearMobileTransition();
-        if (queued) requestMobileStep(track, queued);
+  function watchFinalFrame(track: HTMLElement) {
+    if (decodeFrame) return;
+    const started = performance.now();
+    const check = (now: number) => {
+      decodeFrame = 0;
+      const lenis = getLenis();
+      const { end } = geometry(track);
+      if (!compact.matches || !track.isConnected || lenis.isStopped || lenis.isLocked ||
+        Math.abs(lenis.targetScroll - end) > 1 || track.dataset.cinematicSettled !== 'false') return;
+      if (now - started >= MOBILE_DECODE_TIMEOUT) {
+        // Keep the final scene readable if a phone decoder stalls, without
+        // locking every intermediate gesture behind a decode timer.
+        track.dispatchEvent(new Event('cinematic-fallback'));
         return;
       }
-    } else transition.reachedAt = null;
-    transitionFrame = requestAnimationFrame(finishMobileTransition);
+      decodeFrame = requestAnimationFrame(check);
+    };
+    decodeFrame = requestAnimationFrame(check);
   }
 
-  function finishMobileGesture() {
+  function nextStop(stops: number[], position: number, direction: number) {
+    return direction > 0 ? stops.find(stop => stop > position + 1) ?? stops.at(-1)!
+      : stops.findLast(stop => stop < position - 1) ?? stops[0];
+  }
+
+  function finishMobileGesture(snap = true) {
+    const gesture = mobileGesture;
     clearMobileGesture();
+    if (!gesture || !snap || motion.matches) return;
+    // Like a resting point in a continuous timeline: settle only when already
+    // close, and never snap backwards or queue another scene automatically.
+    snapTimeout = window.setTimeout(() => {
+      snapTimeout = undefined;
+      const lenis = getLenis();
+      if (!compact.matches || !gesture.track.isConnected || lenis.isStopped || lenis.isLocked ||
+        lenis.userData.cinematic !== true && Math.abs(lenis.animatedScroll - gesture.target) > 2) return;
+      const { stops, end } = geometry(gesture.track);
+      const target = nextStop(stops, gesture.target, gesture.direction);
+      if (Math.abs(target - gesture.target) > Math.min(110, window.innerHeight * 0.12)) return;
+      lenis.scrollTo(target, { duration: 0.18, easing: value => 1 - (1 - value) ** 3,
+        programmatic: false, userData: { cinematic: true } });
+      if (Math.abs(target - end) < 1) watchFinalFrame(gesture.track);
+    }, MOBILE_SNAP_DELAY);
   }
 
   function scrollMobile(track: HTMLElement, delta: number, event: WheelEvent | TouchEvent | KeyboardEvent) {
@@ -178,19 +118,31 @@ export function createCinematicScroll(getLenis: () => Lenis) {
     budgetTrack = null;
     const touch = event.type.startsWith('touch');
     const input = touch ? 'touch' : event.type === 'wheel' ? 'wheel' : 'key';
+    window.clearTimeout(snapTimeout);
+    snapTimeout = undefined;
+    const direction = Math.sign(delta);
+    const lenis = getLenis();
+    const { start, end, stops } = geometry(track);
     if (!mobileGesture || mobileGesture.track !== track || mobileGesture.input !== input) {
       clearMobileGesture();
-      mobileGesture = { track, delta: 0, committed: false, input };
+      const position = lenis.animatedScroll;
+      mobileGesture = { track, direction, target: position, boundary: nextStop(stops, position, direction), input };
     }
     const gesture = mobileGesture;
-    gesture.delta += delta;
-    if (!gesture.committed && Math.abs(gesture.delta) >= MOBILE_SWIPE_THRESHOLD) {
-      gesture.committed = true;
-      requestMobileStep(track, { direction: Math.sign(gesture.delta), delta: gesture.delta });
+    if (direction !== gesture.direction) {
+      gesture.direction = direction;
+      gesture.target = lenis.animatedScroll;
+      gesture.boundary = nextStop(stops, gesture.target, direction);
     }
+    // A long flick still meets the next reading point instead of skipping text.
+    // Within that range the animation follows every pixel of finger travel.
+    gesture.target = Math.max(start, Math.min(end, gesture.target + delta * (touch ? MOBILE_TOUCH_GAIN : 1)));
+    gesture.target = direction > 0 ? Math.min(gesture.target, gesture.boundary) : Math.max(gesture.target, gesture.boundary);
+    moveMobile(gesture.target);
+    if (Math.abs(gesture.target - end) < 1) watchFinalFrame(track);
     if (input === 'wheel') {
       window.clearTimeout(wheelTimeout);
-      wheelTimeout = window.setTimeout(finishMobileGesture, 160);
+      wheelTimeout = window.setTimeout(finishMobileGesture, 120);
     } else if (input === 'key') finishMobileGesture();
     return true;
   }
@@ -209,10 +161,9 @@ export function createCinematicScroll(getLenis: () => Lenis) {
     const position = lenis.animatedScroll;
     const direction = Math.sign(delta);
     if (compact.matches) {
-      const ownedTrack = mobileGesture?.track ?? mobileTransition?.track;
+      const ownedTrack = mobileGesture?.track;
       if (ownedTrack?.isConnected) return scrollMobile(ownedTrack, delta, event);
       clearMobileGesture();
-      clearMobileTransition();
     }
     for (const track of document.querySelectorAll<HTMLElement>('[data-cinematic-duration]')) {
       const stage = track.querySelector<HTMLElement>('[data-cinematic-stage]');
@@ -228,6 +179,9 @@ export function createCinematicScroll(getLenis: () => Lenis) {
         (position <= start + 1 && direction < 0 || position >= end - 1 && direction > 0)) {
         return scrollMobile(track, delta, event);
       }
+      // Browser scroll positions round to pixels; weighted product tracks can
+      // finish between pixels. A fresh gesture must be able to leave that end.
+      if (compact.matches && (position <= start + 1 && direction < 0 || position >= end - 1 && direction > 0)) continue;
       if (position < start && destination < start || position > end && destination > end ||
         position <= start && direction < 0 || position >= end && direction > 0) continue;
 
@@ -263,21 +217,15 @@ export function createCinematicScroll(getLenis: () => Lenis) {
 
   function onTouchCancel() {
     if (!compact.matches) return;
+    if (cinematicTouch) getLenis().scrollTo(getLenis().animatedScroll, { immediate: true });
     cinematicTouch = false;
     clearMobileGesture();
+    window.clearTimeout(snapTimeout);
+    snapTimeout = undefined;
     getLenis().isTouching = false;
   }
   // Safari can cancel a touch without sending Lenis a touchend.
   window.addEventListener('touchcancel', onTouchCancel, { passive: true });
-
-  function onAdvance(event: Event) {
-    const track = event.target;
-    const lenis = getLenis();
-    if (!compact.matches || lenis.isStopped || lenis.isLocked || !(track instanceof HTMLElement) ||
-      !track.matches('[data-cinematic-duration]')) return;
-    requestMobileStep(track, { direction: 1, delta: window.innerHeight * 0.85 });
-  }
-  window.addEventListener('cinematic-advance', onAdvance);
 
   return {
     virtualScroll({ deltaX, deltaY, event }: VirtualScrollData) {
@@ -288,11 +236,8 @@ export function createCinematicScroll(getLenis: () => Lenis) {
       if (event.type === 'touchstart') {
         cinematicTouch = false;
         clearMobileGesture();
-        if (compact.matches && mobileTransition && !getLenis().isStopped && !getLenis().isLocked) {
-          // Lenis syncTouch normally resets on touchstart; keep this scene moving.
-          getLenis().isTouching = true;
-          return false;
-        }
+        window.clearTimeout(snapTimeout);
+        snapTimeout = undefined;
       }
       if (event.type === 'touchend') {
         if (cinematicTouch) {
@@ -322,7 +267,7 @@ export function createCinematicScroll(getLenis: () => Lenis) {
             path.some(node => node instanceof HTMLElement && node.matches('[data-lenis-prevent], [data-lenis-prevent-touch]'))) return true;
           const horizontalRail = path.some(node => node instanceof HTMLElement && node.hasAttribute('data-lenis-prevent-horizontal'));
           const onStory = path.some(node => node instanceof HTMLElement && node.hasAttribute('data-cinematic-duration'));
-          if (cinematicTouch || !horizontalRail && (onStory || mobileTransition)) {
+          if (cinematicTouch || !horizontalRail && onStory) {
             if (event.cancelable) event.preventDefault();
             cinematicTouch = true;
           }
@@ -343,9 +288,9 @@ export function createCinematicScroll(getLenis: () => Lenis) {
     },
     dispose() {
       clearMobileGesture();
-      clearMobileTransition();
+      window.clearTimeout(snapTimeout);
+      cancelAnimationFrame(decodeFrame);
       window.removeEventListener('touchcancel', onTouchCancel);
-      window.removeEventListener('cinematic-advance', onAdvance);
     },
   };
 }

@@ -23,16 +23,13 @@ async function scrollFilm(page: Page, seconds: number) {
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
 }
 
-test('home hero keeps its main content with a mobile swipe cue', async ({ page }, testInfo) => {
+test('home hero keeps its main content without additional story controls', async ({ page }, testInfo) => {
   await page.goto('/');
   const hero = page.locator(story);
   await expect(hero.locator('canvas')).toHaveAttribute('data-ready', 'true');
   await expect(hero.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(hero.getByRole('link', { name: 'Discover our products', exact: true })).toBeVisible();
-  if (page.viewportSize()!.width <= 760) {
-    await expect(hero.getByRole('button', { name: 'Next scene. Scene 1 of 4.', exact: true })).toBeVisible();
-    await expect(hero.locator('[data-mobile-cinematic-cue]')).toContainText('Swipe up to explore');
-  } else await expect(hero.getByRole('button')).toHaveCount(0);
+  await expect(hero.getByRole('button')).toHaveCount(0);
   await expect(hero.getByRole('navigation')).toHaveCount(0);
   await expect(hero).not.toContainText(/From wire to world|A story of connection|Skip the story|Steel, at its beginning|Cinematic visualisation|Visualisation|travel through the story|01 \/ 04/i);
   await page.screenshot({ path: testInfo.outputPath('home-clean.png') });
@@ -237,8 +234,8 @@ test('mobile touch swipes advance a chapter and settle without native momentum',
 });
 
 // Exercise the same Lenis touch stream in WebKit, whose automation API has no swipe command.
-async function mobileSwipe(page: Page, cancel = false) {
-  await page.evaluate(cancel => {
+async function mobileSwipe(page: Page, cancel = false, distance = 60) {
+  await page.evaluate(async ({ cancel, distance }) => {
     const target = document.querySelector('[data-cinematic-story]')!;
     function send(type: string, x: number, y: number) {
       // Safari can mark later touchmove samples non-cancelable.
@@ -252,13 +249,16 @@ async function mobileSwipe(page: Page, cancel = false) {
     send('touchstart', 250, 500);
     // Include an initial sideways sample: it must not give the story to native scrolling.
     send('touchmove', 260, 499);
-    send('touchmove', 260, 440);
-    send(cancel ? 'touchcancel' : 'touchend', 260, 440);
-  }, cancel);
+    for (let travel = 30; travel < Math.abs(distance) + 30; travel += 30) {
+      send('touchmove', 260, 500 - Math.min(travel, Math.abs(distance)) * Math.sign(distance));
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    }
+    send(cancel ? 'touchcancel' : 'touchend', 260, 500 - distance);
+  }, { cancel, distance });
 }
 
-test('mobile rapid and cancelled swipes preserve intermediate scenes', async ({ page, isMobile }) => {
-  test.skip(!isMobile, 'Phone scene stepping');
+test('mobile short drags respond continuously and long drags preserve intermediate scenes', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'Phone film scrubbing');
   await page.goto('/');
   await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
   const stops = await page.locator(story).evaluate(track => {
@@ -266,12 +266,24 @@ test('mobile rapid and cancelled swipes preserve intermediate scenes', async ({ 
     return { strand: distance * 0.4, build: distance * 0.65 };
   });
   await mobileSwipe(page, true);
+  const cancelledAt = await page.evaluate(() => scrollY);
+  await page.waitForTimeout(120);
+  expect(await page.evaluate(() => scrollY)).toBe(cancelledAt);
   await mobileSwipe(page);
   await mobileSwipe(page);
   await mobileSwipe(page);
-  // Fast input cannot retarget the current transition past the first reading stop.
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(cancelledAt + 20);
+  // Small gestures do not launch an entire chapter or build a queued backlog.
+  expect(await page.evaluate(() => scrollY)).toBeLessThan(stops.strand);
+  await mobileSwipe(page, false, 600);
   expect(await page.evaluate(() => scrollY)).toBeLessThanOrEqual(stops.strand + 1);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(stops.strand, 0);
   await expect(page.locator('#story-strand')).toHaveAttribute('aria-hidden', 'false');
+  await mobileSwipe(page, false, -60);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(stops.strand - 30);
+  await mobileSwipe(page, false, 600);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(stops.strand, 0);
+  await mobileSwipe(page, false, 600);
   await expect(page.locator('#story-build')).toHaveAttribute('aria-hidden', 'false', { timeout: 10_000 });
   await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(stops.build, 0);
   await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
@@ -289,14 +301,15 @@ test('mobile waits for the final scene and recovers when the decoder stalls', as
   await page.locator(`${story} video`).evaluate((video: HTMLVideoElement) => {
     video.requestVideoFrameCallback = () => 0;
   });
-  await mobileSwipe(page);
+  await mobileSwipe(page, false, 600);
   await mobileSwipe(page);
   await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(end, 0);
-  // The queued exit stays inside the story while the decoded frame is behind.
+  // The final reading point stays inside the story while the decoded frame is behind.
   await expect(page.locator(story)).toHaveAttribute('data-cinematic-settled', 'false');
   expect(await page.evaluate(() => scrollY)).toBeLessThanOrEqual(end + 1);
   await expect(page.locator(`${story} canvas`)).not.toHaveAttribute('data-ready', 'true', { timeout: 10_000 });
   await expect(page.locator('#story-skyline')).toHaveAttribute('aria-hidden', 'false');
+  await mobileSwipe(page, false, 600);
   await expect.poll(() => page.evaluate(() => scrollY), { timeout: 10_000 }).toBeGreaterThan(end + 10);
 });
 
