@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { mountScrollFilm, type ScrollFilm } from '@/lib/scroll-film';
+import { MobileScrollIndicator } from './MobileScrollIndicator';
 import styles from './CinematicStory.module.css';
 
 const chapters = [
@@ -178,6 +179,7 @@ export function CinematicStory() {
             </div>
           </div>)}
         </div>
+        <MobileScrollIndicator active={chapter} complete={chapter === chapters.length - 1} />
       </div>
     </section>
   );

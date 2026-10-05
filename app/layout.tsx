@@ -34,6 +34,12 @@ const archivoNarrow = Archivo_Narrow({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  // Prevent iOS from rewriting server-rendered contact text before hydration.
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
+  },
   alternates: {
     canonical: '/',
   },

@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  allowedDevOrigins: ['192.168.0.113'],
   // The development badge otherwise covers the first mobile story chapter.
   devIndicators: false,
   async redirects() {
