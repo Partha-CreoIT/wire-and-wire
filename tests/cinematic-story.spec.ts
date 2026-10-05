@@ -73,7 +73,7 @@ test('scrolling paints the full film, reverses it and holds its frame when scrol
 });
 
 test.describe('desktop wheel input', () => {
-  test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false });
+  test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false, deviceScaleFactor: 1 });
 
   test('small wheel deltas blend the origin-to-material transition and hold when scrolling stops', async ({ page }) => {
     for (const path of ['/?p=0', '/']) {
@@ -207,7 +207,7 @@ test.describe('desktop wheel input', () => {
   });
 });
 
-test('fast touch swipes are capped and settle without native momentum', async ({ page, isMobile, browserName }) => {
+test('mobile touch swipes advance a chapter and settle without native momentum', async ({ page, isMobile, browserName }) => {
   test.skip(!isMobile || browserName !== 'chromium', 'Real touch input through Chromium mobile emulation');
   await page.goto('/');
   await expect(page.locator(`${story} canvas`)).toHaveAttribute('data-ready', 'true');
@@ -218,13 +218,18 @@ test('fast touch swipes are capped and settle without native momentum', async ({
     await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 320, y }] });
   }
   await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  const readingStop = await page.locator(story).evaluate(track => {
+    const panel = track.firstElementChild as HTMLElement;
+    return ((track as HTMLElement).offsetHeight - panel.offsetHeight) * 0.4;
+  });
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(readingStop, 0);
   await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
   const after = await page.evaluate(() => scrollY);
-  expect(after - before).toBeGreaterThan(150);
-  expect(after - before).toBeLessThan(500);
+  expect(after).toBeGreaterThan(before);
   await page.waitForTimeout(400);
   expect(await page.evaluate(() => scrollY)).toBe(after);
-  await expect(page.locator('#story-mill')).toHaveAttribute('data-active', 'true');
+  await expect(page.locator('#story-strand')).toHaveAttribute('data-active', 'true');
+  await expect(page.locator('#story-strand')).toHaveAttribute('aria-hidden', 'false');
   await touch.detach();
 });
 
@@ -234,7 +239,8 @@ test('scrolling keys are paced while deliberate navigation can leave the film', 
   await page.keyboard.press('PageDown');
   await expect(page.locator('html')).not.toHaveClass(/lenis-scrolling/);
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(150);
-  expect(await page.evaluate(() => scrollY)).toBeLessThan(400);
+  const limit = await page.evaluate(() => innerWidth <= 760 ? innerHeight : 400);
+  expect(await page.evaluate(() => scrollY)).toBeLessThan(limit);
   // End remains an explicit way to reach content immediately.
   await page.keyboard.press('End');
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(5000);
@@ -252,8 +258,13 @@ test('scrolling reveals chapter copy and clears it during connecting moves', asy
     }
   }
   await scrollFilm(page, 16);
-  await expect(page.locator(story)).toHaveAttribute('data-travelling', 'true');
-  await expect(page.locator('[id^="story-"][inert]')).toHaveCount(4);
+  if (page.viewportSize()!.width <= 760) {
+    await expect(page.locator(`${story}[data-travelling]`)).toHaveCount(0);
+    await expect(page.locator('#story-build')).toHaveAttribute('aria-hidden', 'false');
+  } else {
+    await expect(page.locator(story)).toHaveAttribute('data-travelling', 'true');
+    await expect(page.locator('[id^="story-"][inert]')).toHaveCount(4);
+  }
   await scrollFilm(page, 19.5);
   await page.getByRole('link', { name: 'See the applications' }).click();
   await expect(page).toHaveURL(/\/products\/pc-strand#applications$/);

@@ -15,6 +15,12 @@
   height: var(--film-track-height);
 }
 
+@media (max-width: 760px) {
+  .world:not(:global(.sw-root)) {
+    height: var(--film-mobile-track-height);
+  }
+}
+
 .world :global(.sw-btn--primary) {
   color: #141414;
   background: #f4eee6;

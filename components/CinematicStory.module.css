@@ -35,6 +35,8 @@
   .copy h1, .copy h2 { font-size: clamp(44px, 6.2vw, 65px); }
 }
 @media (max-width: 760px) {
+  /* Four chapters over two screens of travel: about one swipe per scene. */
+  .story[data-enhanced] { height: 300svh; }
   .stage { min-height: 650px; }
   .frames { height: 78%; }
   .frames::after { content: ''; position: absolute; inset: auto 0 0; height: 35%; background: linear-gradient(transparent, #111718); }
@@ -61,7 +63,6 @@
   .actions { margin-top: 19px; }
 }
 @media (max-height: 649px) and (max-width: 760px) {
-  .story[data-enhanced] { height: 4300px; }
   .stage { min-height: 0; }
   .copyStack { bottom: calc(52px + env(safe-area-inset-bottom)); }
   .body { margin-top: 14px; }

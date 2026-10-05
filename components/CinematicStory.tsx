@@ -56,6 +56,7 @@ export function CinematicStory() {
   const [portrait, setPortrait] = useState(false);
   const [ready, setReady] = useState(false);
   const [travelling, setTravelling] = useState(false);
+  const copyTravelling = ready && travelling && !portrait;
 
   // Times correspond to the continuous master: mill → zoom → strand → pullback
   // → construction → aerial ascent → Kuala Lumpur. Copy follows decoded frames.
@@ -143,7 +144,7 @@ export function CinematicStory() {
   }, [showProgress]);
 
   return (
-    <section ref={root} className={styles.story} data-cinematic-story data-cinematic-duration="30" data-travelling={ready && travelling || undefined} data-film-tone="dark" data-enhanced={enhanced || undefined} aria-label="Wire & Wire">
+    <section ref={root} className={styles.story} data-cinematic-story data-cinematic-duration="30" data-cinematic-stops="0,0.4,0.65,1" data-travelling={copyTravelling || undefined} data-film-tone="dark" data-enhanced={enhanced || undefined} aria-label="Wire & Wire">
       <div ref={stage} className={styles.stage} data-cinematic-stage>
         <div className={styles.frames}>
           {chapters.map((item, index) => <figure key={item.id} className={styles.shot} data-active={index === chapter || undefined} data-scene={item.id} aria-hidden={index !== chapter}>
@@ -160,7 +161,7 @@ export function CinematicStory() {
         <div className={styles.shade} aria-hidden="true" />
 
         <div className={styles.copyStack}>
-          {chapters.map((item, index) => <div key={item.id} id={`story-${item.id}`} className={styles.copy} data-active={index === chapter || undefined} aria-hidden={index !== chapter || (ready && travelling)} inert={index !== chapter || (ready && travelling)}>
+          {chapters.map((item, index) => <div key={item.id} id={`story-${item.id}`} className={styles.copy} data-active={index === chapter || undefined} aria-hidden={index !== chapter || copyTravelling} inert={index !== chapter || copyTravelling}>
             <p className={styles.eyebrow}>{item.eyebrow}</p>
             {index === 0 ? <h1>{item.title[0]}<br /><em>{item.title[1]}</em></h1> : <h2>{item.title[0]}<br /><em>{item.title[1]}</em></h2>}
             <p className={styles.body}>{item.body}</p>

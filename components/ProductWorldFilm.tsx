@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { mountLetsScroll } from '@/lib/lets-scroll-engine';
+import { MOBILE_SCENE_SCROLL } from '@/lib/cinematic-scroll';
 import {
   productFamilies,
   productFilmPlan,
@@ -18,7 +19,10 @@ const overviewScroll = productFilmPlan.map((_, index) => index === 0 || index ==
 const familyScroll = 1.6;
 
 function initialTrackStyle(spans: number[]): CSSProperties {
-  return { '--film-track-height': `${(spans.reduce((sum, span) => sum + span, 1)) * 100}dvh` } as CSSProperties;
+  return {
+    '--film-track-height': `${spans.reduce((sum, span) => sum + span, 1) * 100}dvh`,
+    '--film-mobile-track-height': `${spans.reduce((sum, span) => sum + Math.min(span, MOBILE_SCENE_SCROLL), 1) * 100}dvh`,
+  } as CSSProperties;
 }
 
 const overviewBodies = [

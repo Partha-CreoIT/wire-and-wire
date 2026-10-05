@@ -1,5 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
 
+function filmSpans(page: Page, family = false) {
+  const spans = family ? [1.6] : [1.45, 1.18, 1.18, 1.18, 1.18, 1.45];
+  return page.viewportSize()!.width <= 760 ? spans.map(() => 0.55) : spans;
+}
+
 async function navigate(page: Page, href: string) {
   const menu = page.getByRole('button', { name: 'Open menu' });
   if (await menu.isVisible()) {
@@ -29,18 +34,19 @@ test('product films paint different frames as the user scrolls', async ({ page }
     await expect(page.locator('.sw-scene video').first()).toHaveJSProperty('readyState', 4);
     // A real gesture exercises mobile video activation before scrolling.
     await page.locator('.sw-copy__title').first().click();
-    await page.evaluate(() => window.scrollTo(0, innerHeight * 0.2));
+    const span = filmSpans(page, path !== '/products')[0];
+    await page.evaluate(span => window.scrollTo(0, innerHeight * span * 0.15), span);
     await expect.poll(() => page.locator('.sw-scene video').first().evaluate((v: HTMLVideoElement) => v.currentTime)).toBeGreaterThan(0.4);
     await expect.poll(() => page.locator('.sw-scene video').first().evaluate((v: HTMLVideoElement) => v.seeking)).toBe(false);
     const before = await frameSignature(page);
     expect(before).toBeGreaterThan(1000);
     await page.screenshot({ path: testInfo.outputPath(`${path.replaceAll('/', '-') || 'home'}-start.png`) });
-    await page.evaluate(() => window.scrollTo(0, innerHeight * 0.75));
+    await page.evaluate(span => window.scrollTo(0, innerHeight * span * 0.55), span);
     await expect.poll(() => page.locator('.sw-scene video').first().evaluate((v: HTMLVideoElement) => v.currentTime)).toBeGreaterThan(2);
     await expect.poll(() => page.locator('.sw-scene video').first().evaluate((v: HTMLVideoElement) => v.seeking)).toBe(false);
     expect(await frameSignature(page)).not.toBe(before);
     await page.screenshot({ path: testInfo.outputPath(`${path.replaceAll('/', '-') || 'home'}-scrolled.png`) });
-    await page.evaluate(() => window.scrollTo(0, innerHeight * 0.2));
+    await page.evaluate(span => window.scrollTo(0, innerHeight * span * 0.15), span);
     await expect.poll(() => page.locator('.sw-scene video').first().evaluate((v: HTMLVideoElement) => v.currentTime)).toBeLessThan(2);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
@@ -163,7 +169,7 @@ test('navigation clears wheel inertia but Back and Forward preserve their positi
 
 test('product names and process copy remain accessible by scrolling without a route rail', async ({ page }, testInfo) => {
   await page.goto('/products');
-  const spans = [1.45, 1.18, 1.18, 1.18, 1.18, 1.45];
+  const spans = filmSpans(page);
   const scrollToScene = async (index: number) => {
     const position = spans.slice(0, index).reduce((sum, span) => sum + span, 0) + (index === 0 ? 0 : spans[index] / 2);
     await page.locator('.sw-root').evaluate((root, position) => {
@@ -284,7 +290,8 @@ test('reduced motion keeps home and product content accessible by scrolling with
   await navigate(page, '/products');
   await expect(page.locator('.sw-scene video')).toHaveCount(0);
   await expect(page.locator('.sw-route')).toHaveCount(0);
-  await page.evaluate(() => window.scrollTo({ top: innerHeight * 2.04, behavior: 'instant' }));
+  const spans = filmSpans(page);
+  await page.evaluate(position => window.scrollTo({ top: innerHeight * position, behavior: 'instant' }), spans[0] + spans[1] / 2);
   await expect.poll(() => page.locator('.sw-copy').nth(1).evaluate(e => Number(getComputedStyle(e).opacity))).toBeGreaterThan(0.8);
   await page.locator('footer a[href="/products/pc-bar"]').click();
   await expect(page.locator('.sw-copy h1')).toHaveText('PC Bar');

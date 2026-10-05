@@ -79,6 +79,7 @@ export function initSmoothScroll(): Cleanup {
   return () => {
     gsap.ticker.remove(tick);
     window.removeEventListener('keydown', cinematic.onKeyDown);
+    cinematic.dispose();
     lenis.destroy();
     lenisInstance = null;
     // Deliberately not killing triggers — each component disposes its own.
