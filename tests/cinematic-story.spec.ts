@@ -23,13 +23,16 @@ async function scrollFilm(page: Page, seconds: number) {
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
 }
 
-test('home hero keeps its main content without story labels or chapter controls', async ({ page }, testInfo) => {
+test('home hero keeps its main content with a mobile swipe cue', async ({ page }, testInfo) => {
   await page.goto('/');
   const hero = page.locator(story);
   await expect(hero.locator('canvas')).toHaveAttribute('data-ready', 'true');
   await expect(hero.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(hero.getByRole('link', { name: 'Discover our products', exact: true })).toBeVisible();
-  await expect(hero.getByRole('button')).toHaveCount(0);
+  if (page.viewportSize()!.width <= 760) {
+    await expect(hero.getByRole('button', { name: 'Next scene. Scene 1 of 4.', exact: true })).toBeVisible();
+    await expect(hero.locator('[data-mobile-cinematic-cue]')).toContainText('Swipe up to explore');
+  } else await expect(hero.getByRole('button')).toHaveCount(0);
   await expect(hero.getByRole('navigation')).toHaveCount(0);
   await expect(hero).not.toContainText(/From wire to world|A story of connection|Skip the story|Steel, at its beginning|Cinematic visualisation|Visualisation|travel through the story|01 \/ 04/i);
   await page.screenshot({ path: testInfo.outputPath('home-clean.png') });

@@ -4,6 +4,8 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { mountScrollFilm, type ScrollFilm } from '@/lib/scroll-film';
+import { advanceCinematicScene } from '@/lib/cinematic-scroll';
+import { MobileCinematicCue } from './MobileCinematicCue';
 import styles from './CinematicStory.module.css';
 
 const chapters = [
@@ -178,7 +180,7 @@ export function CinematicStory() {
             </div>
           </div>)}
         </div>
-
+        <MobileCinematicCue active={chapter} total={chapters.length} complete={chapter === chapters.length - 1} onAdvance={() => { if (root.current) advanceCinematicScene(root.current); }} />
       </div>
     </section>
   );

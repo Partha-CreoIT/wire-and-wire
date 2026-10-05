@@ -1,0 +1,58 @@
+.cue { display: none; }
+
+@media (max-width: 760px) {
+  .cue {
+    display: block;
+    position: absolute;
+    left: 23px;
+    right: 23px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 30;
+    color: var(--film-white, var(--sw-ink, #f6f2e9));
+    --cue-accent: var(--film-accent, var(--sw-accent, #dfb887));
+  }
+  .fixed { position: fixed; }
+  .button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 0;
+    border: 0;
+    border-top: 1px solid currentColor;
+    border-color: color-mix(in srgb, currentColor 22%, transparent);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .action { display: flex; align-items: center; gap: 12px; }
+  .arrow { width: 18px; height: 24px; flex: none; color: var(--cue-accent); transition: transform 160ms ease; animation: swipe 1.4s ease-in-out 3; }
+  .copy { display: grid; gap: 3px; font: 500 12px / 1.35 var(--font-body, sans-serif); }
+  .copy small { font-size: 11px; font-weight: 400; opacity: .75; }
+  .position { display: grid; gap: 7px; justify-items: end; font: 400 10px / 1 var(--font-mono, monospace); font-variant-numeric: tabular-nums; }
+  .steps { display: flex; gap: 4px; }
+  .steps i { width: 10px; height: 2px; background: currentColor; opacity: .3; }
+  .steps i[data-active] { background: var(--cue-accent); opacity: 1; }
+  .button:active .arrow,
+  :global([data-cinematic-moving]) .arrow { animation: none; transform: translateY(-5px); }
+  .button:focus-visible { outline: 2px solid var(--cue-accent); outline-offset: 4px; }
+}
+
+@keyframes swipe {
+  0%, 100% { transform: translateY(2px); }
+  45% { transform: translateY(-4px); }
+}
+
+@media (max-width: 370px) {
+  .cue { left: 18px; right: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow { animation: none; transition: none; }
+  .button:active .arrow,
+  :global([data-cinematic-moving]) .arrow { transform: none; }
+}
