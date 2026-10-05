@@ -14,10 +14,10 @@ const siteDescription =
   'pre-stressed concrete. The tension steel inside 23 landmark structures ' +
   'across Malaysia, Singapore, Indonesia and the UAE.';
 const socialPreviewImage = {
-  url: '/social-preview.jpg',
+  url: '/social-preview-cinematic.jpg',
   width: 1200,
   height: 630,
-  alt: 'Pre-stressed steel strand, wire drawing mill and landmark structures.',
+  alt: 'Wire & Wire — The strength behind the skyline. Silver steel strand against Kuala Lumpur at dusk.',
 };
 
 const archivo = Archivo({
